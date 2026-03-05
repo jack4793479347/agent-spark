@@ -1,0 +1,10 @@
+{
+  "name": "@agentspark/config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./eslint.config.mjs",
+  "files": [
+    "eslint.config.mjs",
+    "tsconfig.base.json"
+  ]
+}

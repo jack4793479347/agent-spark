@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "cd ../.. && npx turbo build --filter=@agentspark/web",
+  "installCommand": "cd ../.. && npm ci",
+  "outputDirectory": ".next",
+  "rootDirectory": "apps/web"
+}

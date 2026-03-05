@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip:*)",
+      "Bash(python:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(npx turbo:*)",
+      "Bash(git:*)",
+      "Bash(xargs rm:*)",
+      "Bash(rm:*)",
+      "Bash(python3:*)",
+      "Bash(npm ls:*)",
+      "Bash(ls:*)",
+      "Bash(pdftotext:*)",
+      "Bash(xargs grep:*)",
+      "Bash(curl:*)",
+      "Bash(npx next:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(node:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(find C:\\\\Users\\\\hubba\\\\Downloads\\\\AgentSpark\\\\apps\\\\web\\\\app\\\\\\(marketplace\\):*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(find:*)",
+      "Bash(npx kill-port 3000 4000)",
+      "Bash(lsof -ti:3000 -ti:4000)",
+      "Bash(xargs kill -9)",
+      "Bash(xargs -I{} taskkill //F //PID {})",
+      "Bash(docker:*)",
+      "Bash(sed 's/.*\"\"text\"\":\"\"//')",
+      "Bash(sed 's/\"\".*//')"
+    ]
+  }
+}

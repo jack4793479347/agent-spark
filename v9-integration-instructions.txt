@@ -1,0 +1,160 @@
+# Agent Spark — Claude Code Integration Prompt
+
+Paste this entire prompt into Claude Code, then paste the full contents of `agentspark-landing-v9.jsx` at the bottom where indicated.
+
+---
+
+```
+TASK: Integrate the V9 landing page design into the existing Agent Spark codebase. The landing page file I'm providing is a self-contained React component with inline styles. Your job is to:
+1. Convert it to TypeScript and integrate it as app/page.tsx
+2. Wire up all navigation links to existing routes
+3. Wire up the search/assembly flow to existing API functions
+4. Wire up auth (Log in / Get Started buttons)
+5. Keep every single visual detail exactly as provided
+
+ABSOLUTE RULES — VIOLATING ANY OF THESE IS A FAILURE:
+- Do NOT modify any API routes or backend code
+- Do NOT modify lib/api/index.ts or any lib/ files
+- Do NOT modify app/dashboard/ pages
+- Do NOT modify app/marketplace/[slug]/ pages
+- Do NOT modify middleware, Supabase config, or Stripe integration
+- Do NOT convert inline styles to Tailwind classes — keep ALL inline styles exactly as written
+- Do NOT "clean up", refactor, or reorganize the component code
+- Do NOT remove any SVG code, animations, or visual elements
+- Do NOT add any npm dependencies — this component uses ONLY React hooks (useState, useEffect, useRef, useCallback)
+- If you encounter a conflict with an existing component, create a NEW file — never overwrite shared components
+
+STEP 1: FONTS
+In app/layout.tsx, ADD these Google Font imports. Keep all existing fonts.
+
+If using next/font/google:
+  import { Outfit, DM_Sans, Space_Grotesk } from 'next/font/google'
+  
+  const outfit = Outfit({ subsets: ['latin'], weight: ['200','300','400','500','600','700'], variable: '--font-outfit' })
+  const dmSans = DM_Sans({ subsets: ['latin'], weight: ['400','500','600','700'], variable: '--font-dm-sans' })
+  const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['400','500','600','700'], variable: '--font-space-grotesk' })
+
+Add all three variables to the <html> or <body> className. Do NOT remove existing font variables.
+
+STEP 2: CSS KEYFRAMES
+In globals.css, APPEND these keyframes (do NOT replace existing content):
+
+  @keyframes a1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(4%,-6%) scale(1.06)} 100%{transform:translate(0,0) scale(1)} }
+  @keyframes a2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-5%,5%) scale(1.05)} 100%{transform:translate(0,0) scale(1)} }
+  @keyframes a3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(7%,-4%) scale(1.08)} 100%{transform:translate(0,0) scale(1)} }
+  @keyframes dotBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+  @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes navDropIn { from{opacity:0;transform:translateX(-50%) translateY(4px) scale(0.97)} to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} }
+  @keyframes beamSpin { from{--beam-angle:0deg} to{--beam-angle:360deg} }
+  @property --beam-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+  .border-beam-anim { animation: beamSpin 4s linear infinite; }
+
+STEP 3: REPLACE app/page.tsx
+Delete everything in app/page.tsx. Replace with the file I'm providing below.
+
+Convert to TypeScript as you go:
+- Add "use client" as the first line
+- Add TypeScript types to all function parameters:
+  - Component props: React.CSSProperties, React.MouseEvent<HTMLElement>, etc.
+  - State: useState<string>(""), useState<boolean>(false), etc.
+  - Refs: useRef<HTMLCanvasElement>(null), useRef<HTMLInputElement>(null), etc.
+  - Event handlers: (e: React.ChangeEvent<HTMLInputElement>), (e: React.KeyboardEvent), etc.
+  - SVG/JSX children props: React.ReactNode
+- Keep the default export as: export default function LandingPage()
+
+Do NOT change any logic, styles, SVGs, animations, or component structure during conversion.
+
+STEP 4: WIRE UP NAVIGATION
+The landing page has these navigation links. Wire them to your existing routes:
+
+NavBar links:
+- Logo (/) → app/page.tsx (this page itself)
+- "Products" dropdown items:
+  - "AI Agent Marketplace" → /marketplace (app/marketplace/page.tsx)
+  - "Workflow Assembler" → scroll to hero search input on this page (use onClick with inputRef.current?.focus())
+  - "Agent Studio" → /dashboard/create (or /dashboard if create doesn't exist)
+  - "A2A Orchestration" → /dashboard (or # if no dedicated page)
+  - "Integrations" → /dashboard (or # if no dedicated page)
+  - "API & SDKs" → /docs or # if no docs page
+- "Marketplace" → /marketplace
+- "About" → /about (or # if page doesn't exist yet)
+- "Pricing" → /pricing (or # if page doesn't exist yet)
+- "Log in" → your auth login route (check if you have /login, /auth/login, or use your auth modal)
+- "Get Started" → your auth signup route (check if you have /signup, /auth/signup, or use your auth modal)
+- "Dashboard" button in assembled state → /dashboard
+
+For any route that doesn't exist yet, use "#" as the href and add a comment: {/* TODO: create this route */}
+
+Use Next.js <Link> components instead of <a> tags for internal navigation. Import Link from 'next/link' at the top. Keep <a> tags only for external links or anchor scrolling.
+
+STEP 5: WIRE UP THE SEARCH / ASSEMBLY FLOW
+The landing page has a search input and "fire" function that simulates assembling an agent team.
+
+Currently the fire() function does: setPhase("thinking") → setTimeout → setPhase("assembled")
+
+Wire this to your actual API:
+1. Import your assembleWorkflow function from lib/api/index.ts (or wherever it lives)
+2. Replace the setTimeout mock with a real API call:
+
+  const fire = async () => {
+    if (!query.trim()) return;
+    setPhase("thinking");
+    try {
+      const result = await assembleWorkflow(query);
+      // If your API returns team data, use it. Otherwise fall back to MOCK_TEAM
+      setPhase("assembled");
+    } catch (err) {
+      console.error("Assembly failed:", err);
+      setPhase("assembled"); // Still show assembled state with mock data as fallback
+    }
+  };
+
+3. If assembleWorkflow doesn't exist in your codebase, keep the setTimeout mock and add a comment:
+  // TODO: Replace with assembleWorkflow(query) from lib/api when ready
+
+4. The "Activate Team" button in the assembled state should:
+  - If you have a checkout/rental flow: navigate to it or trigger it
+  - Otherwise: navigate to /dashboard
+  - Add the appropriate onClick handler
+
+STEP 6: WIRE UP AUTH STATE
+If your app has auth (Supabase, NextAuth, etc.):
+
+1. Import your auth hook (e.g., useUser, useSession, useAuth)
+2. In the NavBar component, conditionally render:
+  - If logged OUT: show "Log in" + "Get Started" buttons (as currently designed)
+  - If logged IN: show "Dashboard" button (solid #1A1A1A style) + optionally user avatar
+3. The "Dashboard" button should link to /dashboard
+4. If you don't have auth set up yet, keep the current Log in / Get Started buttons as-is
+
+STEP 7: VERIFY
+Run: npm run build
+Must be ZERO errors.
+
+Manually check:
+- Landing page loads with globe, headline, search input, suggestion pills
+- Products dropdown opens on hover with hero card + 6 product items
+- Marketplace, About, Pricing nav links work (or go to # if pages don't exist)
+- Typing in search + pressing Enter or clicking arrow triggers the assembly flow
+- Suggestion pills auto-fill the search and trigger assembly
+- Tabbed agent showcase works (5 tabs: Email, Sales, Content, Ops, Code)
+- Each tab shows its unique SVG visual (chart, funnel, calendar, routes, code editor)
+- Hovering the agent card animates the visual
+- Integration marquee scrolls at the bottom
+- All other pages (marketplace, dashboard, API routes) are COMPLETELY UNCHANGED
+
+STEP 8: CLEAN UP OLD LANDING PAGE COMPONENTS
+After confirming everything works, check if the old landing page imported components that are no longer needed. If so:
+- Do NOT delete them if other pages use them
+- Only remove imports from app/page.tsx that are no longer referenced
+- Do NOT delete any files in components/ — other pages may depend on them
+
+DO NOT proceed to "improve", "optimize", or "enhance" anything beyond these 8 steps.
+
+=================================================================
+HERE IS THE COMPLETE LANDING PAGE FILE — paste into app/page.tsx:
+=================================================================
+```
+
+Paste the full contents of agentspark-landing-v9.jsx below this line.
