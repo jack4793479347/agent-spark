@@ -47,6 +47,229 @@ const generateListingSchema = z.object({
   input: z.string().min(1, 'Please provide a system prompt or description'),
 });
 
+// ─── POST /training-chat — AI trainer conversation ────────────
+const trainingChatSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string(),
+  })),
+  phase: z.string().default('purpose'),
+});
+
+const TRAINER_SYSTEM_PROMPT = `You are an expert AI agent product designer for Agent Spark — a marketplace where creators build and SELL AI agents to customers.
+
+CRITICAL FRAMING: The creator is building a PRODUCT to sell on a marketplace. Every question should be framed around the buyer/customer experience, not the creator's personal use. Think "What will your customers need?" not "What do you want?"
+
+Your job is to interview the creator through a structured conversation, then we will generate a production-quality system prompt from the answers.
+
+## SUGGESTED ANSWERS
+
+After EVERY question, provide 3-5 clickable suggested answers. Format them as:
+__SUGGESTIONS:["suggestion 1", "suggestion 2", "suggestion 3"]__
+
+Make suggestions specific and opinionated — not generic. They should be the most likely good answers for the context. The creator can click one OR type their own answer.
+
+## Your Conversation Flow
+
+At the END of each message, include metadata:
+__PHASE:current_phase__
+__PROGRESS:number__ (0-100)
+__SUGGESTIONS:["option1", "option2", "option3"]__
+
+### Phase 1: PURPOSE (start here)
+Frame around the PRODUCT and MARKET:
+- "What type of agent do you want to sell?" (with suggestions based on popular categories)
+- "Who's the target customer? What's their job title and pain point?"
+- "What will customers get from this agent that they can't easily do themselves?"
+Move fast — 1-2 exchanges max.
+
+### Phase 2: BEHAVIOR
+Quick decisions about agent personality and rules. These should be mostly clickable:
+- Tone (professional, friendly, technical, casual)
+- When unsure (ask clarifying questions, best guess with disclaimer, escalate)
+- Output format (structured reports, conversational, bullet points, step-by-step)
+- Hard rules / things to never do
+1-2 exchanges max.
+
+### Phase 3: KNOWLEDGE
+- "What expertise makes this agent worth paying for?"
+- "What domain knowledge should this agent have?"
+Do NOT ask about uploading documents or knowledge base files — that happens in a separate Setup step after training. Focus on the conceptual expertise and domain knowledge the agent should have.
+1 exchange max.
+
+### Phase 4: EXAMPLES
+Provide 1-2 EXAMPLE scenarios yourself based on what you've learned, and ask if they look right. Don't ask the creator to come up with examples from scratch — that's friction. Show them what good looks like and let them adjust.
+1 exchange.
+
+### Phase 5: REVIEW
+Present a tight summary. Ask for confirmation.
+1 exchange.
+
+## Rules
+- MARKETPLACE MINDSET: Always frame questions as "your customers" and "buyers", never "you personally"
+- SPEED IS EVERYTHING: The ENTIRE training should be 4-6 exchanges. Move FAST. Combine related questions. Skip what you can infer.
+- SUGGESTED ANSWERS: Every single message MUST end with __SUGGESTIONS:[...]__. Make them specific, smart, and clickable. Most users should be able to complete training by ONLY clicking suggestions.
+- Keep messages SHORT: 1-2 sentences + the question. NO walls of text. NO bullet lists of sub-questions. ONE question.
+- Be opinionated — suggest what you think is best, let them override
+- Skip phases that are already answered from context
+- After 3-4 exchanges, you should have enough. Move to review quickly.`;
+
+agentRoutes.post('/training-chat', zValidator('json', trainingChatSchema), async (c) => {
+  const { messages, phase } = c.req.valid('json');
+
+  const { default: Anthropic } = await import('@anthropic-ai/sdk');
+  const anthropic = new Anthropic();
+
+  // Ensure conversation starts with a user message (required by Claude API)
+  // If the first message is from the assistant (our trainer), prepend the implicit user greeting
+  let apiMessages = messages.length > 0 ? [...messages] : [];
+  if (apiMessages.length === 0 || apiMessages[0].role !== 'user') {
+    apiMessages = [{ role: 'user' as const, content: 'Hi, I want to create a new agent.' }, ...apiMessages];
+  }
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 1500,
+    system: TRAINER_SYSTEM_PROMPT,
+    messages: apiMessages,
+  });
+
+  const textBlock = response.content.find((b) => b.type === 'text');
+  if (!textBlock || textBlock.type !== 'text') {
+    return c.json({ error: 'AI did not return text' }, 500);
+  }
+
+  const text = textBlock.text;
+
+  // Parse metadata from response
+  const phaseMatch = text.match(/__PHASE:\s*(\w+)__/i);
+  const progressMatch = text.match(/__PROGRESS:\s*(\d+)__/i);
+
+  // Parse suggestions from Claude
+  const suggestionsMatch = text.match(/__SUGGESTIONS:\s*(\[[\s\S]*?\])__/i);
+  let suggestions: string[] = [];
+  if (suggestionsMatch) {
+    try {
+      suggestions = JSON.parse(suggestionsMatch[1]);
+    } catch {
+      // Ignore parse errors
+    }
+  }
+
+  // Clean display text (remove metadata markers)
+  const displayText = text
+    .replace(/__PHASE:\s*\w+__/gi, '')
+    .replace(/__PROGRESS:\s*\d+__/gi, '')
+    .replace(/__SUGGESTIONS:\s*\[[\s\S]*?\]__/gi, '')
+    .trim();
+
+  const detectedPhase = (phaseMatch?.[1] ?? phase).toLowerCase();
+  const detectedProgress = progressMatch ? parseInt(progressMatch[1], 10) : 0;
+
+  // Guaranteed fallback suggestions per phase if Claude didn't provide any
+  if (suggestions.length === 0) {
+    const messageCount = apiMessages.length;
+    const fallbacks: Record<string, string[][]> = {
+      purpose: [
+        ['Customer support agent', 'Content creation assistant', 'Sales outreach agent', 'Data analysis agent', 'HR onboarding assistant'],
+        ['Small business owners', 'Marketing teams', 'Developers', 'Freelancers', 'Enterprise teams'],
+        ['Saves them hours of manual work', 'Gives expert-level output without hiring', 'Automates a repetitive workflow', 'Provides 24/7 availability'],
+      ],
+      behavior: [
+        ['Professional and helpful', 'Friendly and casual', 'Technical and precise', 'Bold and direct'],
+        ['Ask clarifying questions first', 'Give best answer with disclaimer', 'Provide multiple options to choose from'],
+        ['Structured reports with sections', 'Conversational and natural', 'Step-by-step instructions', 'Bullet point summaries'],
+      ],
+      knowledge: [
+        ['Yes, I have docs to upload', 'No, general knowledge is fine', 'I\'ll add docs later'],
+      ],
+      examples: [
+        ['Looks good, move on', 'Adjust the tone a bit', 'Add more detail to the output', 'Change the format'],
+      ],
+      review: [
+        ['Looks great, generate my agent!', 'I want to adjust something', 'Add one more thing'],
+      ],
+      complete: [
+        ['Looks great, generate my agent!'],
+      ],
+    };
+    const phaseFallbacks = fallbacks[detectedPhase] ?? fallbacks.purpose;
+    const fallbackIdx = Math.min(Math.floor(messageCount / 2), phaseFallbacks.length - 1);
+    suggestions = phaseFallbacks[fallbackIdx] ?? phaseFallbacks[0];
+  }
+
+  const result: Record<string, unknown> = {
+    message: displayText,
+    phase: detectedPhase,
+    progress: detectedProgress,
+    suggestions,
+  };
+
+  // When training is complete (progress >= 95 and phase is review/complete),
+  // make a dedicated call to generate the system prompt with enough tokens
+  if (detectedProgress >= 95 && (detectedPhase === 'review' || detectedPhase === 'complete')) {
+    // Build a summary of the conversation for prompt generation
+    const conversationSummary = apiMessages
+      .map((m) => `${m.role === 'user' ? 'Creator' : 'Trainer'}: ${m.content}`)
+      .join('\n\n');
+
+    const promptGenResponse = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 4000,
+      messages: [{
+        role: 'user',
+        content: `Based on this training conversation between a creator and an AI agent trainer, generate two things:
+
+1. A complete, production-ready SYSTEM PROMPT for the AI agent. This should be detailed, well-structured with clear sections, and include all the behavior rules, knowledge requirements, output formats, and constraints discussed. Make it comprehensive enough that the agent works great out of the box.
+
+CRITICAL BEHAVIORAL RULES to include in every system prompt:
+- The agent must be ACTION-ORIENTED. It should DO things immediately, not ask endless clarifying questions.
+- If the agent has enough context to start working, it should start working and deliver a result.
+- The agent should ask AT MOST one clarifying question before producing output. If the user's request is reasonably clear, skip questions entirely and deliver value.
+- When the agent has a knowledge base (RAG context will be injected below the system prompt), it MUST actively reference and use that knowledge in its responses. Never say "I don't have access to a knowledge base" — if knowledge context appears below, USE IT.
+- The agent should produce concrete, specific, actionable output — not generic advice.
+
+2. A JSON metadata object with: name (catchy 2-4 word agent name), description (one sentence, max 200 chars), category (one of: customer-support, sales, ecommerce, marketing, finance, hr, productivity, development, content, operations, utility), tags (array of 3-5 lowercase tags), suggested_pricing (number, 0 for free, or reasonable monthly price in dollars).
+
+Here is the training conversation:
+
+${conversationSummary}
+
+Respond in EXACTLY this format:
+
+__SYSTEM_PROMPT_START__
+(the complete system prompt here)
+__SYSTEM_PROMPT_END__
+
+__AGENT_META_START__
+(the JSON metadata object here)
+__AGENT_META_END__`,
+      }],
+    });
+
+    const genText = promptGenResponse.content.find((b) => b.type === 'text');
+    if (genText && genText.type === 'text') {
+      const systemPromptMatch = genText.text.match(/__SYSTEM_PROMPT_START__\n?([\s\S]*?)\n?__SYSTEM_PROMPT_END__/);
+      const metaMatch = genText.text.match(/__AGENT_META_START__\n?([\s\S]*?)\n?__AGENT_META_END__/);
+
+      if (systemPromptMatch) {
+        result.system_prompt = systemPromptMatch[1].trim();
+      }
+      if (metaMatch) {
+        try {
+          result.agent_meta = JSON.parse(metaMatch[1].trim());
+        } catch {
+          // Ignore parse errors for meta
+        }
+      }
+    }
+
+    result.progress = 100;
+  }
+
+  return c.json(result);
+});
+
 // ─── POST /generate-listing — AI-powered listing generation ───
 agentRoutes.post('/generate-listing', zValidator('json', generateListingSchema), async (c) => {
   const { input } = c.req.valid('json');
@@ -474,6 +697,35 @@ agentRoutes.post('/approvals/:id/respond', zValidator('json', approvalResponseSc
   return c.json({
     message: approved ? 'Action approved — execution resuming' : 'Action rejected — execution cancelled',
   });
+});
+
+// ─── GET /:id — Get agent details ─────────────────────────────
+// NOTE: Must be after /mine, /executions, /approvals to avoid wildcard conflicts
+agentRoutes.get('/:id', async (c) => {
+  const agentId = c.req.param('id');
+  const auth = c.get('auth');
+
+  const { data: agent, error } = await supabaseAdmin
+    .from('agents')
+    .select('id, name, slug, description, category, system_prompt, model, required_connectors, optional_connectors, status, creator_id, avg_rating, review_count, pricing_model, price_cents, per_use_price_cents, tags, created_at')
+    .eq('id', agentId)
+    .single();
+
+  if (error || !agent) {
+    return c.json({ error: 'Agent not found' }, 404);
+  }
+
+  // Only allow creator or published agents
+  if (agent.status !== 'published' && agent.creator_id !== auth.userId) {
+    return c.json({ error: 'Agent not found' }, 404);
+  }
+
+  // Don't expose system_prompt to non-creators
+  if (agent.creator_id !== auth.userId) {
+    agent.system_prompt = '';
+  }
+
+  return c.json({ agent });
 });
 
 // ─── Knowledge Base Endpoints ─────────────────────────────────

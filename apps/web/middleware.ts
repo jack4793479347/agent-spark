@@ -1,58 +1,32 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
-import { createServerClient } from '@supabase/ssr';
 
-const PROTECTED_PREFIXES = [
-  '/dashboard',
-  '/agents',
-  '/workflows',
-  '/studio',
-  '/connections',
-  '/settings',
-  '/history',
-  '/browse',
-  '/creator',
-];
+// Waitlist branch: only allow the landing page and waitlist API.
+// Everything else returns 404.
+const ALLOWED_PATHS = ['/', '/api/waitlist'];
 
-export async function middleware(request: NextRequest) {
-  // First, refresh the Supabase session cookie
-  const response = await updateSession(request);
-
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if this is a protected route
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-  if (!isProtected) return response;
-
-  // Check for user session
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-key',
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll() {
-          // no-op — we already handled cookies in updateSession
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    const redirectUrl = new URL('/auth', request.url);
-    redirectUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(redirectUrl);
+  // Allow static assets, Next.js internals, and favicon
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|css|js)$/)
+  ) {
+    return NextResponse.next();
   }
 
-  return response;
+  // Allow only whitelisted paths
+  if (ALLOWED_PATHS.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Block everything else — redirect to home
+  return NextResponse.redirect(new URL('/', request.url));
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

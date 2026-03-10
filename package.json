@@ -23,5 +23,10 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "npm@10.0.0"
+  "packageManager": "npm@10.0.0",
+  "dependencies": {
+    "@icons-pack/react-simple-icons": "^13.11.1",
+    "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^4.9.155"
+  }
 }

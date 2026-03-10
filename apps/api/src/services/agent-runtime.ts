@@ -528,11 +528,21 @@ async function executeAgentLoop(
   // RAG: retrieve relevant knowledge chunks and augment system prompt
   let systemPromptText = agent.system_prompt;
   try {
-    systemPromptText = await buildRAGSystemPrompt(agent.system_prompt, agent.id, ctx.userInput);
+    const augmented = await buildRAGSystemPrompt(agent.system_prompt, agent.id, ctx.userInput);
+    if (augmented !== agent.system_prompt) {
+      console.log(`[RAG] Injected knowledge context for agent ${agent.id}`);
+    } else {
+      console.log(`[RAG] No relevant chunks found for agent ${agent.id}`);
+    }
+    systemPromptText = augmented;
   } catch (err) {
     // If RAG fails (no VOYAGE_API_KEY, no chunks, etc.), fall back to base prompt
-    console.warn('RAG retrieval skipped:', err instanceof Error ? err.message : err);
+    console.error('[RAG] Retrieval failed:', err instanceof Error ? err.message : err);
   }
+
+  // Inject universal behavioral directives
+  const behavioralDirective = `\n\n---\n\n# Behavioral Rules\n- Be ACTION-ORIENTED: deliver results immediately rather than asking multiple clarifying questions.\n- Ask at most ONE clarifying question if the request is ambiguous. If you have enough context, start working.\n- If you have knowledge base context below, actively use and reference it. Never claim you lack knowledge if context is provided.\n- Produce concrete, specific output — not generic advice.`;
+  systemPromptText += behavioralDirective;
 
   // Prompt caching — wrap system prompt with cache_control
   const cachedSystemPrompt = [

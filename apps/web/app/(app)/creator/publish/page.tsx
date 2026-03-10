@@ -137,7 +137,7 @@ export default function PublishPage() {
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 28px 80px' }}>
-      <h1 className="m-0 mb-1" style={{ fontSize: 24, fontWeight: 700, color: '#1A1A1A', letterSpacing: '-0.02em' }}>
+      <h1 style={{ fontSize: 24, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', letterSpacing: '-0.03em', margin: '0 0 4px 0' }}>
         Publish New Agent
       </h1>
       <p className="m-0 mb-6" style={{ fontSize: 14, color: '#999' }}>
@@ -222,7 +222,7 @@ export default function PublishPage() {
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
-          <h2 className="m-0 mb-2" style={{ fontSize: 20, fontWeight: 700, color: '#1A1A1A' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 600, color: '#1A1A1A', margin: '0 0 8px 0' }}>
             Agent Published!
           </h2>
           <p className="m-0 mb-6" style={{ fontSize: 14, color: '#888' }}>
@@ -250,7 +250,7 @@ export default function PublishPage() {
       {/* ── Step 1: Basic Info ── */}
       {!published && step === 1 && (
         <div style={{ ...glassCard, animation: 'cardIn 0.25s ease both' }}>
-          <h2 className="m-0 mb-5" style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A1A1A', margin: '0 0 20px 0' }}>
             Basic Info
           </h2>
 
@@ -326,7 +326,7 @@ export default function PublishPage() {
       {/* ── Step 2: Capabilities ── */}
       {!published && step === 2 && (
         <div style={{ ...glassCard, animation: 'cardIn 0.25s ease both' }}>
-          <h2 className="m-0 mb-1" style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A1A1A', margin: '0 0 4px 0' }}>
             Capabilities
           </h2>
           <p className="m-0 mb-5" style={{ fontSize: 13, color: '#999' }}>
@@ -445,7 +445,7 @@ export default function PublishPage() {
       {/* ── Step 3: Pricing ── */}
       {!published && step === 3 && (
         <div style={{ ...glassCard, animation: 'cardIn 0.25s ease both' }}>
-          <h2 className="m-0 mb-1" style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A1A1A', margin: '0 0 4px 0' }}>
             Pricing
           </h2>
           <p className="m-0 mb-5" style={{ fontSize: 13, color: '#999' }}>
@@ -517,7 +517,7 @@ export default function PublishPage() {
       {!published && step === 4 && (
         <div style={{ animation: 'cardIn 0.25s ease both' }}>
           <div style={glassCard} className="mb-5">
-            <h2 className="m-0 mb-4" style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1A1A1A', margin: '0 0 16px 0' }}>
               Review Your Listing
             </h2>
 
@@ -533,7 +533,7 @@ export default function PublishPage() {
               <div className="flex items-start gap-3.5 mb-4">
                 <AgentIcon iconType={form.iconType} size={48} />
                 <div className="flex-1 min-w-0">
-                  <div style={{ fontSize: 17, fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2 }}>
+                  <div style={{ fontSize: 17, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', lineHeight: 1.2 }}>
                     {form.name || 'Untitled Agent'}
                   </div>
                   <div className="flex items-center gap-2 mt-1">

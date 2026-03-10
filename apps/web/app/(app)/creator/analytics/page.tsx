@@ -94,10 +94,10 @@ function buildTopAgents(agents: AgentMine[], entries: EarningsHistoryEntry[]): A
 function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div style={{ padding: '24px', background: 'rgba(239,68,68,.04)', border: '1px solid rgba(239,68,68,.12)', borderRadius: 12, textAlign: 'center' }}>
-      <p style={{ fontSize: 13, color: '#EF4444', fontFamily: 'var(--body)', margin: '0 0 12px' }}>{message}</p>
+      <p style={{ fontSize: 13, color: '#EF4444', fontFamily: 'var(--font-body)', margin: '0 0 12px' }}>{message}</p>
       <button onClick={onRetry} style={{
         display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1A1A1A', color: '#fff',
-        border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--body)', cursor: 'pointer',
+        border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--font-body)', cursor: 'pointer',
       }}>
         Retry
       </button>
@@ -108,7 +108,7 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
 function EmptyState({ message }: { message: string }) {
   return (
     <div style={{ padding: '48px 24px', ...glassCard, textAlign: 'center' }}>
-      <p style={{ fontSize: 14, color: '#BBB', fontFamily: 'var(--body)', margin: 0 }}>{message}</p>
+      <p style={{ fontSize: 14, color: '#BBB', fontFamily: 'var(--font-body)', margin: 0 }}>{message}</p>
     </div>
   );
 }
@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 28px 80px' }}>
-      <h1 className="m-0 mb-1" style={{ fontSize: 24, fontWeight: 700, color: '#1A1A1A', letterSpacing: '-0.02em' }}>
+      <h1 style={{ fontSize: 24, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', letterSpacing: '-0.03em', margin: '0 0 4px' }}>
         Analytics
       </h1>
       <p className="m-0 mb-6" style={{ fontSize: 14, color: '#999' }}>
@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
               style={{ ...glassCard, padding: '18px 20px', animation: `cardIn 0.25s ease ${i * 40}ms both` }}
             >
               <div style={{ fontSize: 12, color: '#AAA', fontWeight: 500, marginBottom: 6 }}>{stat.label}</div>
-              <div style={{ fontSize: 26, fontWeight: 700, color: stat.color ?? '#1A1A1A', letterSpacing: '-0.02em' }}>
+              <div style={{ fontSize: 26, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: stat.color ?? '#1A1A1A', letterSpacing: '-0.02em' }}>
                 {stat.value}
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
         <div className="grid gap-5 mb-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(380px, 100%), 1fr))' }}>
           {/* Rentals chart */}
           <div style={{ ...glassCard, padding: '20px 20px 16px', animation: 'cardIn 0.3s ease 160ms both' }}>
-            <h2 className="m-0 mb-4" style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A' }}>
+            <h2 className="m-0 mb-4" style={{ fontSize: 15, fontWeight: 600, color: '#1A1A1A' }}>
               Rentals Over Time
             </h2>
             <div style={{ width: '100%', height: 220 }}>
@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
 
           {/* Revenue chart */}
           <div style={{ ...glassCard, padding: '20px 20px 16px', animation: 'cardIn 0.3s ease 200ms both' }}>
-            <h2 className="m-0 mb-4" style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A' }}>
+            <h2 className="m-0 mb-4" style={{ fontSize: 15, fontWeight: 600, color: '#1A1A1A' }}>
               Revenue Over Time
             </h2>
             <div style={{ width: '100%', height: 220 }}>
@@ -274,7 +274,7 @@ export default function AnalyticsPage() {
 
       {/* ── Top performing agents ── */}
       <div style={{ animation: 'cardIn 0.3s ease 280ms both' }}>
-        <h2 className="m-0 mb-3" style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>
+        <h2 className="m-0 mb-3" style={{ fontSize: 16, fontWeight: 600, color: '#1A1A1A' }}>
           Top Performing Agents
         </h2>
         {isLoading ? (

@@ -11,6 +11,7 @@ import { workflowRoutes } from './routes/workflows.js';
 import { a2aRoutes } from './routes/a2a.js';
 import { billingRoutes } from './routes/billing.js';
 import { authRoutes } from './routes/auth.js';
+import { demoRoutes } from './routes/demo.js';
 import { setupSocketIO } from './realtime/socket.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
 import { validateEnv } from './lib/env-check.js';
@@ -59,6 +60,7 @@ app.route('/api/workflows', workflowRoutes);
 app.route('/api/a2a', a2aRoutes);
 app.route('/api/billing', billingRoutes);
 app.route('/api/auth', authRoutes);
+app.route('/api/demo', demoRoutes);
 
 const port = Number(process.env.PORT) || 4000;
 

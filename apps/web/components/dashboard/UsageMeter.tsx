@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Zap, TrendingUp } from 'lucide-react';
+import { Sparkles, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface UsageData {
@@ -70,7 +70,7 @@ export function UsageMeter({ className, onUpgradeClick }: UsageMeterProps) {
     <div className={cn('glass-card-static', className)}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-accent-primary" strokeWidth={1.75} />
+          <Sparkles className="w-4 h-4 text-accent-primary" strokeWidth={1.75} />
           <span className="text-sm font-heading font-semibold text-text-primary">Usage</span>
         </div>
         <span className={cn(

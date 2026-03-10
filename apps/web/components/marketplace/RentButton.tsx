@@ -36,11 +36,9 @@ export function RentButton({
     setError(undefined);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-
       // For free agents, create rental directly via rentals endpoint
       if (pricingModel === 'free') {
-        const res = await fetch(`${apiUrl}/api/rentals`, {
+        const res = await fetch('/api/rentals', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -62,7 +60,7 @@ export function RentButton({
       }
 
       // Paid agents: create Stripe checkout session
-      const res = await fetch(`${apiUrl}/api/billing/create-checkout`, {
+      const res = await fetch('/api/billing/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -11,29 +11,29 @@ export const PLATFORM_PLANS = {
     name: 'Free',
     stripe_price_id: null,
     monthly_tasks: 50,
-    monthly_a2a_calls: 10,
+    monthly_a2a_calls: 5,
     price_cents: 0,
   },
   starter: {
     name: 'Starter',
     stripe_price_id: null, // Set via env
-    monthly_tasks: 500,
-    monthly_a2a_calls: 100,
+    monthly_tasks: 250,
+    monthly_a2a_calls: 25,
     price_cents: 2900,
   },
   pro: {
     name: 'Pro',
     stripe_price_id: null, // Set via env
-    monthly_tasks: 2000,
-    monthly_a2a_calls: 500,
-    price_cents: 7900,
+    monthly_tasks: 1500,
+    monthly_a2a_calls: 200,
+    price_cents: 9900,
   },
   business: {
     name: 'Business',
     stripe_price_id: null, // Set via env
-    monthly_tasks: 10000,
-    monthly_a2a_calls: 2500,
-    price_cents: 19900,
+    monthly_tasks: 5000,
+    monthly_a2a_calls: 1000,
+    price_cents: 29900,
   },
 } as const;
 

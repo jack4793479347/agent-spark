@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Plus_Jakarta_Sans, DM_Sans, Outfit, Space_Grotesk } from 'next/font/google';
+import { Inter, Plus_Jakarta_Sans, DM_Sans, Sora, Space_Grotesk } from 'next/font/google';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import './globals.css';
 
@@ -24,7 +24,7 @@ const dmSans = DM_Sans({
   weight: ['400', '500', '600', '700'],
 });
 
-const outfit = Outfit({
+const sora = Sora({
   subsets: ['latin'],
   variable: '--font-outfit',
   display: 'swap',
@@ -68,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${plusJakartaSans.variable} ${dmSans.variable} ${outfit.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${plusJakartaSans.variable} ${dmSans.variable} ${sora.variable} ${spaceGrotesk.variable}`}>
       <body className="min-h-screen antialiased" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'DM Sans', sans-serif" }}>
         <AuthProvider>
           {children}

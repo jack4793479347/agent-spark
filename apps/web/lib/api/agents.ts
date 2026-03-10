@@ -79,7 +79,7 @@ export function publishAgent(id: string) {
 }
 
 export function sandboxAgent(id: string, input: string) {
-  return apiPost<{ executionId: string; status: string }>(`/api/agents/${id}/sandbox`, { input });
+  return apiPost<{ executionId: string; status: string; result?: { text: string } }>(`/api/agents/${id}/sandbox`, { input });
 }
 
 export function executeAgent(id: string, input: string) {
@@ -88,6 +88,30 @@ export function executeAgent(id: string, input: string) {
 
 export function generateListing(input: string) {
   return apiPost<{ listing: Record<string, unknown> }>('/api/agents/generate-listing', { input });
+}
+
+export interface TrainingMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface TrainingChatResponse {
+  message: string;
+  phase: string;
+  progress: number;
+  suggestions?: string[];
+  system_prompt?: string;
+  agent_meta?: {
+    name?: string;
+    description?: string;
+    category?: string;
+    tags?: string[];
+    suggested_pricing?: number;
+  };
+}
+
+export function trainingChat(messages: TrainingMessage[], phase: string = 'purpose') {
+  return apiPost<TrainingChatResponse>('/api/agents/training-chat', { messages, phase });
 }
 
 export function getExecutions(params?: { limit?: number; offset?: number; agent_id?: string }) {
@@ -109,6 +133,29 @@ export function getApprovals() {
 
 export function respondToApproval(id: string, approved: boolean) {
   return apiPost<{ success: boolean }>(`/api/agents/approvals/${id}`, { approved });
+}
+
+// ─── URL Scraping ────────────────────────────────────────────
+
+export interface ScrapeResult {
+  success: boolean;
+  title: string;
+  url: string;
+  content: string;
+  length: number;
+}
+
+export async function scrapeUrl(url: string): Promise<ScrapeResult> {
+  const res = await fetch('/api/scrape', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Scrape failed (${res.status})`);
+  }
+  return res.json();
 }
 
 // ─── Knowledge Base ──────────────────────────────────────────

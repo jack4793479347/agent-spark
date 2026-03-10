@@ -40,7 +40,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   const s = map[status] ?? map.draft;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: s.color, background: s.bg, borderRadius: 5, padding: '2px 8px', fontFamily: 'var(--body)' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: s.color, background: s.bg, borderRadius: 5, padding: '2px 8px', fontFamily: 'var(--font-body)' }}>
       <span style={{ width: 5, height: 5, borderRadius: 3, background: s.color }} />
       {s.label}
     </span>
@@ -64,10 +64,10 @@ function MiniChart({ data, color }: { data: number[]; color: string }) {
 function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div style={{ padding: '24px', background: 'rgba(239,68,68,.04)', border: '1px solid rgba(239,68,68,.12)', borderRadius: 12, textAlign: 'center' }}>
-      <p style={{ fontSize: 13, color: '#EF4444', fontFamily: 'var(--body)', margin: '0 0 12px' }}>{message}</p>
+      <p style={{ fontSize: 13, color: '#EF4444', fontFamily: 'var(--font-body)', margin: '0 0 12px' }}>{message}</p>
       <button onClick={onRetry} style={{
         display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1A1A1A', color: '#fff',
-        border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--body)', cursor: 'pointer',
+        border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--font-body)', cursor: 'pointer',
       }}>
         <NavIcon type="refresh" size={12} /> Retry
       </button>
@@ -78,7 +78,7 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
 function EmptyState({ message }: { message: string }) {
   return (
     <div style={{ padding: '48px 24px', background: 'rgba(255,255,255,.45)', border: '1px solid rgba(255,255,255,.55)', borderRadius: 12, textAlign: 'center' }}>
-      <p style={{ fontSize: 14, color: '#BBB', fontFamily: 'var(--body)', margin: 0 }}>{message}</p>
+      <p style={{ fontSize: 14, color: '#BBB', fontFamily: 'var(--font-body)', margin: 0 }}>{message}</p>
     </div>
   );
 }
@@ -102,7 +102,7 @@ interface AgentRow {
   version: string;
   rentals: number;
   revenue: number;
-  credits: number;
+  executions: number;
   rating: number;
   reviews: number;
   trend: string;
@@ -117,7 +117,7 @@ function toAgentRows(agents: AgentMine[], earningsByAgent: Map<string, number>):
     version: a.version ?? '1.0.0',
     rentals: a.active_rentals,
     revenue: Math.round((earningsByAgent.get(a.id) ?? 0) / 100),
-    credits: a.total_executions,
+    executions: a.total_executions,
     rating: a.avg_rating,
     reviews: a.review_count,
     trend: '',
@@ -247,7 +247,7 @@ export default function CreatorStudioPage() {
     <button onClick={() => setSubtab(id)} style={{
       fontSize: 12, fontWeight: subtab === id ? 600 : 450, color: subtab === id ? '#1A1A1A' : '#CCC',
       background: subtab === id ? 'rgba(0,0,0,.04)' : 'none', border: 'none', borderRadius: 6,
-      padding: '6px 12px', cursor: 'pointer', fontFamily: 'var(--body)', transition: 'all .12s',
+      padding: '6px 12px', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all .12s',
     }}>{label}</button>
   );
 
@@ -256,13 +256,13 @@ export default function CreatorStudioPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, animation: 'fadeUp .3s ease' }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 500, color: '#1A1A1A', fontFamily: 'var(--head)', letterSpacing: '-0.03em', marginBottom: 2, margin: 0 }}>Creator Studio</h1>
-          <p style={{ fontSize: 12.5, color: '#BBB', fontFamily: 'var(--body)', margin: 0 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 400, color: '#1A1A1A', fontFamily: 'var(--font-outfit)', letterSpacing: '-0.03em', marginBottom: 2, margin: 0 }}>Creator Studio</h1>
+          <p style={{ fontSize: 13.5, color: '#999', fontFamily: 'var(--font-body)', margin: 0 }}>
             {isLoading ? 'Loading...' : liveCount + ' agents live \u00B7 ' + fk(totalRentals) + ' total rentals'}
           </p>
         </div>
         <Link href="/creator/publish" style={{ textDecoration: 'none' }}>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1A1A1A', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--body)', cursor: 'pointer', transition: 'all .15s' }}
+          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1A1A1A', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 600, fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all .15s' }}
             onMouseEnter={e => e.currentTarget.style.background = '#333'} onMouseLeave={e => e.currentTarget.style.background = '#1A1A1A'}>
             <NavIcon type="plus" size={13} /> New Agent
           </button>
@@ -289,12 +289,12 @@ export default function CreatorStudioPage() {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.75)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,.5)'}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--body)', marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 400, color: '#1A1A1A', fontFamily: 'var(--head)', letterSpacing: '-0.03em', lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--font-body)', marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 400, color: '#1A1A1A', fontFamily: 'var(--font-outfit)', letterSpacing: '-0.03em', lineHeight: 1 }}>{s.value}</div>
                 </div>
                 <MiniChart data={s.chart} color={s.color} />
               </div>
-              {s.change && <span style={{ fontSize: 10.5, fontWeight: 600, color: '#22C55E', fontFamily: 'var(--body)' }}>{s.change + ' vs last month'}</span>}
+              {s.change && <span style={{ fontSize: 10.5, fontWeight: 600, color: '#22C55E', fontFamily: 'var(--font-body)' }}>{s.change + ' vs last month'}</span>}
             </div>
           ))}
         </div>
@@ -318,7 +318,7 @@ export default function CreatorStudioPage() {
             <>
               <div style={{ background: 'rgba(255,255,255,.45)', borderRadius: 12, border: '1px solid rgba(255,255,255,.55)', overflow: 'hidden' }}>
                 {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 80px 90px 90px 80px 80px 60px', gap: 8, padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.03)', fontSize: 10.5, fontWeight: 600, color: '#CCC', fontFamily: 'var(--body)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 80px 90px 90px 80px 80px 60px', gap: 8, padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.03)', fontSize: 10.5, fontWeight: 600, color: '#CCC', fontFamily: 'var(--font-body)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
                   <span>Agent</span><span>Status</span><span>Rentals</span><span>Revenue</span><span>Rating</span><span>Updated</span><span></span>
                 </div>
 
@@ -333,18 +333,18 @@ export default function CreatorStudioPage() {
                   onMouseEnter={e => { if (selectedAgent !== a.id) e.currentTarget.style.background = 'rgba(0,0,0,.01)'; }}
                   onMouseLeave={e => { if (selectedAgent !== a.id) e.currentTarget.style.background = 'transparent'; }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', fontFamily: 'var(--body)' }}>{a.name}</div>
-                      <div style={{ fontSize: 10.5, color: '#CCC', fontFamily: 'var(--body)' }}>{'v' + a.version}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', fontFamily: 'var(--font-body)' }}>{a.name}</div>
+                      <div style={{ fontSize: 10.5, color: '#CCC', fontFamily: 'var(--font-body)' }}>{'v' + a.version}</div>
                     </div>
                     <StatusBadge status={a.status} />
                     <div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', fontFamily: 'var(--body)' }}>{fk(a.rentals)}</span>
-                      {a.trend && <span style={{ fontSize: 10, color: '#22C55E', fontFamily: 'var(--body)', marginLeft: 4 }}>{a.trend}</span>}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', fontFamily: 'var(--font-body)' }}>{fk(a.rentals)}</span>
+                      {a.trend && <span style={{ fontSize: 10, color: '#22C55E', fontFamily: 'var(--font-body)', marginLeft: 4 }}>{a.trend}</span>}
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: a.revenue > 0 ? '#1A1A1A' : '#DDD', fontFamily: 'var(--body)' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: a.revenue > 0 ? '#1A1A1A' : '#DDD', fontFamily: 'var(--font-body)' }}>
                       {a.revenue > 0 ? '$' + fk(a.revenue) : '\u2014'}
                     </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12.5, fontFamily: 'var(--body)' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12.5, fontFamily: 'var(--font-body)' }}>
                       {a.rating > 0 ? (
                         <>
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
@@ -353,7 +353,7 @@ export default function CreatorStudioPage() {
                         </>
                       ) : <span style={{ color: '#DDD' }}>{'\u2014'}</span>}
                     </span>
-                    <span style={{ fontSize: 11, color: '#CCC', fontFamily: 'var(--body)' }}>{a.updated}</span>
+                    <span style={{ fontSize: 11, color: '#CCC', fontFamily: 'var(--font-body)' }}>{a.updated}</span>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(0,0,0,.04)', background: 'rgba(255,255,255,.5)', cursor: 'pointer', display: 'grid', placeItems: 'center', color: '#CCC', transition: 'all .12s', padding: 0 }}
                         onMouseEnter={e => { e.currentTarget.style.color = '#1A1A1A'; e.currentTarget.style.background = 'rgba(255,255,255,.9)'; }}
@@ -377,19 +377,19 @@ export default function CreatorStudioPage() {
                 return (
                   <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, animation: 'fadeUp .25s ease' }}>
                     <div style={{ padding: '14px 16px', background: 'rgba(255,255,255,.45)', borderRadius: 10, border: '1px solid rgba(255,255,255,.55)' }}>
-                      <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--body)', marginBottom: 4 }}>This Month</div>
-                      <div style={{ fontSize: 20, fontWeight: 400, fontFamily: 'var(--head)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>{'$' + fk(a.revenue)}</div>
-                      <div style={{ fontSize: 10.5, color: '#22C55E', fontFamily: 'var(--body)' }}>{'85% of $' + fk(Math.round(a.revenue / 0.85)) + ' gross'}</div>
+                      <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--font-body)', marginBottom: 4 }}>This Month</div>
+                      <div style={{ fontSize: 20, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>{'$' + fk(a.revenue)}</div>
+                      <div style={{ fontSize: 10.5, color: '#22C55E', fontFamily: 'var(--font-body)' }}>{'85% of $' + fk(Math.round(a.revenue / 0.85)) + ' gross'}</div>
                     </div>
                     <div style={{ padding: '14px 16px', background: 'rgba(255,255,255,.45)', borderRadius: 10, border: '1px solid rgba(255,255,255,.55)' }}>
-                      <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--body)', marginBottom: 4 }}>Executions</div>
-                      <div style={{ fontSize: 20, fontWeight: 400, fontFamily: 'var(--head)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>{fk(a.credits)}</div>
-                      <div style={{ fontSize: 10.5, color: '#999', fontFamily: 'var(--body)' }}>{'~' + Math.round(a.credits / Math.max(a.rentals, 1)) + ' per renter avg'}</div>
+                      <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--font-body)', marginBottom: 4 }}>Executions</div>
+                      <div style={{ fontSize: 20, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>{fk(a.executions)}</div>
+                      <div style={{ fontSize: 10.5, color: '#999', fontFamily: 'var(--font-body)' }}>{'~' + Math.round(a.executions / Math.max(a.rentals, 1)) + ' per renter avg'}</div>
                     </div>
                     <div style={{ padding: '14px 16px', background: 'rgba(255,255,255,.45)', borderRadius: 10, border: '1px solid rgba(255,255,255,.55)' }}>
-                      <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--body)', marginBottom: 4 }}>Reviews</div>
-                      <div style={{ fontSize: 20, fontWeight: 400, fontFamily: 'var(--head)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>{a.reviews}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10.5, color: '#999', fontFamily: 'var(--body)' }}>
+                      <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--font-body)', marginBottom: 4 }}>Reviews</div>
+                      <div style={{ fontSize: 20, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>{a.reviews}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10.5, color: '#999', fontFamily: 'var(--font-body)' }}>
                         <svg width="9" height="9" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                         {a.rating + ' average'}
                       </div>
@@ -411,18 +411,18 @@ export default function CreatorStudioPage() {
             <>
               <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
                 <div style={{ flex: 1, padding: '16px', background: 'rgba(255,255,255,.45)', borderRadius: 12, border: '1px solid rgba(255,255,255,.55)' }}>
-                  <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--body)', marginBottom: 4 }}>Pending Payout</div>
-                  <div style={{ fontSize: 24, fontWeight: 400, fontFamily: 'var(--head)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>
+                  <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--font-body)', marginBottom: 4 }}>Pending Payout</div>
+                  <div style={{ fontSize: 24, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>
                     {'$' + fk(earnings ? Math.round(earnings.pending_payout_cents / 100) : 0)}
                   </div>
-                  <div style={{ fontSize: 10.5, color: '#999', fontFamily: 'var(--body)' }}>Estimated &middot; Stripe Connect</div>
+                  <div style={{ fontSize: 10.5, color: '#999', fontFamily: 'var(--font-body)' }}>Estimated &middot; Stripe Connect</div>
                 </div>
                 <div style={{ flex: 1, padding: '16px', background: 'rgba(255,255,255,.45)', borderRadius: 12, border: '1px solid rgba(255,255,255,.55)' }}>
-                  <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--body)', marginBottom: 4 }}>Total Earned (All Time)</div>
-                  <div style={{ fontSize: 24, fontWeight: 400, fontFamily: 'var(--head)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>
+                  <div style={{ fontSize: 10.5, color: '#BBB', fontFamily: 'var(--font-body)', marginBottom: 4 }}>Total Earned (All Time)</div>
+                  <div style={{ fontSize: 24, fontWeight: 400, fontFamily: 'var(--font-outfit)', color: '#1A1A1A', letterSpacing: '-0.03em' }}>
                     {'$' + fk(earnings ? Math.round(earnings.total_net_cents / 100) : 0)}
                   </div>
-                  <div style={{ fontSize: 10.5, color: '#999', fontFamily: 'var(--body)' }}>Net after platform fee &middot; Stripe Connect</div>
+                  <div style={{ fontSize: 10.5, color: '#999', fontFamily: 'var(--font-body)' }}>Net after platform fee &middot; Stripe Connect</div>
                 </div>
               </div>
 
@@ -430,15 +430,15 @@ export default function CreatorStudioPage() {
                 <EmptyState message="No payouts yet. Earnings will appear here once you receive your first payout." />
               ) : (
                 <div style={{ background: 'rgba(255,255,255,.45)', borderRadius: 12, border: '1px solid rgba(255,255,255,.55)', overflow: 'hidden' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 80px', gap: 8, padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.03)', fontSize: 10.5, fontWeight: 600, color: '#CCC', fontFamily: 'var(--body)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 80px', gap: 8, padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.03)', fontSize: 10.5, fontWeight: 600, color: '#CCC', fontFamily: 'var(--font-body)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
                     <span>Month</span><span>Amount</span><span>Agents</span><span>Status</span>
                   </div>
                   {payoutRows.map((p, i) => (
                     <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 80px', gap: 8, padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,.02)', alignItems: 'center' }}>
-                      <span style={{ fontSize: 13, fontWeight: 550, color: '#1A1A1A', fontFamily: 'var(--body)' }}>{p.month}</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', fontFamily: 'var(--body)' }}>{'$' + fk(p.amount)}</span>
-                      <span style={{ fontSize: 12.5, color: '#999', fontFamily: 'var(--body)' }}>{p.agents + ' agents'}</span>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: '#22C55E', background: 'rgba(34,197,94,.08)', borderRadius: 5, padding: '2px 8px', fontFamily: 'var(--body)', width: 'fit-content' }}>
+                      <span style={{ fontSize: 13, fontWeight: 550, color: '#1A1A1A', fontFamily: 'var(--font-body)' }}>{p.month}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', fontFamily: 'var(--font-body)' }}>{'$' + fk(p.amount)}</span>
+                      <span style={{ fontSize: 12.5, color: '#999', fontFamily: 'var(--font-body)' }}>{p.agents + ' agents'}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: '#22C55E', background: 'rgba(34,197,94,.08)', borderRadius: 5, padding: '2px 8px', fontFamily: 'var(--font-body)', width: 'fit-content' }}>
                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                         Paid
                       </span>
@@ -466,8 +466,8 @@ export default function CreatorStudioPage() {
                 return (
                   <div key={`live-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,.02)', background: 'rgba(59,130,246,0.02)' }}>
                     <div style={{ width: 6, height: 6, borderRadius: 3, background: typeColor[evt.type] ?? '#999', flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontSize: 12.5, color: '#777', fontFamily: 'var(--body)', lineHeight: 1.4 }}>{evt.message}</span>
-                    <span style={{ fontSize: 11, color: '#DDD', fontFamily: 'var(--body)', flexShrink: 0 }}>just now</span>
+                    <span style={{ flex: 1, fontSize: 12.5, color: '#777', fontFamily: 'var(--font-body)', lineHeight: 1.4 }}>{evt.message}</span>
+                    <span style={{ fontSize: 11, color: '#DDD', fontFamily: 'var(--font-body)', flexShrink: 0 }}>just now</span>
                   </div>
                 );
               })}
@@ -484,8 +484,8 @@ export default function CreatorStudioPage() {
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: i < activityRows.length - 1 ? '1px solid rgba(0,0,0,.02)' : 'none' }}>
                     <div style={{ width: 6, height: 6, borderRadius: 3, background: tm.color, flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontSize: 12.5, color: '#777', fontFamily: 'var(--body)', lineHeight: 1.4 }}>{a.text}</span>
-                    <span style={{ fontSize: 11, color: '#DDD', fontFamily: 'var(--body)', flexShrink: 0 }}>{a.time}</span>
+                    <span style={{ flex: 1, fontSize: 12.5, color: '#777', fontFamily: 'var(--font-body)', lineHeight: 1.4 }}>{a.text}</span>
+                    <span style={{ fontSize: 11, color: '#DDD', fontFamily: 'var(--font-body)', flexShrink: 0 }}>{a.time}</span>
                   </div>
                 );
               })}

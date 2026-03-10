@@ -20,12 +20,30 @@ export interface Connection {
   last_used_at?: string;
 }
 
+export interface ComposioConnectionStatus {
+  connector_type: string;
+  name: string;
+  logo?: string;
+  connected: boolean;
+  isNoAuth: boolean;
+}
+
 export function getAvailableConnectors() {
   return apiGet<{ connector_types: ConnectorType[] }>('/api/connections/available');
 }
 
 export function getConnections() {
   return apiGet<{ connections: Connection[] }>('/api/connections');
+}
+
+export function getConnectionStatus() {
+  return apiGet<{ connections: ComposioConnectionStatus[] }>('/api/connections/status');
+}
+
+export function authorizeConnection(connectorType: string) {
+  return apiPost<{ redirectUrl: string; connectionId: string }>('/api/connections/authorize', {
+    connector_type: connectorType,
+  });
 }
 
 export function deleteConnection(id: string) {

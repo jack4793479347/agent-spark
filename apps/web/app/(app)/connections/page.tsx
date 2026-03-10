@@ -1,81 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useConnectionsStore } from '@/lib/store/connections';
 import { SkeletonGrid } from '@/components/shared/Skeleton';
-
-/* ═══════════════════════════════════════════════════════════════
-   CONNECTOR ICON MAP
-   ═══════════════════════════════════════════════════════════════ */
+import {
+  SiGmail,
+  SiShopify,
+  SiHubspot,
+  SiStripe,
+  SiNotion,
+  SiGooglecalendar,
+  SiGooglesheets,
+  SiAirtable,
+} from '@icons-pack/react-simple-icons';
 
 function ConnectorIcon({ id }: { id: string }) {
-  const size = 22;
-  const stroke = '#1A1A1A';
-  const sw = 1.8;
+  const size = 18;
+  const color = '#1A1A1A';
 
-  const icons: Record<string, React.ReactNode> = {
-    gmail: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
+  const brandIcons: Record<string, React.ReactNode> = {
+    gmail: <SiGmail size={size} color={color} />,
+    shopify: <SiShopify size={size} color={color} />,
+    hubspot: <SiHubspot size={size} color={color} />,
+    stripe: <SiStripe size={size} color={color} />,
+    notion: <SiNotion size={size} color={color} />,
+    'google-calendar': <SiGooglecalendar size={size} color={color} />,
+    'google-sheets': <SiGooglesheets size={size} color={color} />,
+    airtable: <SiAirtable size={size} color={color} />,
     slack: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2h-2v2a2 2 0 0 1-4 0v-6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2z" /><path d="M3 9a2 2 0 0 1 2-2h2V5a2 2 0 0 1 4 0v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      </svg>
-    ),
-    shopify: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
-      </svg>
-    ),
-    hubspot: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" />
-      </svg>
-    ),
-    stripe: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
-      </svg>
-    ),
-    notion: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      </svg>
-    ),
-    'google-calendar': (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
-    'google-sheets': (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" /><line x1="9" y1="3" x2="9" y2="21" />
-      </svg>
-    ),
-    airtable: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+        <path d="M5.04 15.16a2.4 2.4 0 1 1-2.4-2.4h2.4v2.4zm1.2 0a2.4 2.4 0 1 1 4.8 0v6a2.4 2.4 0 1 1-4.8 0v-6zM8.64 5.04a2.4 2.4 0 1 1 2.4-2.4v2.4H8.64zm0 1.2a2.4 2.4 0 1 1 0 4.8h-6a2.4 2.4 0 1 1 0-4.8h6zM18.96 8.64a2.4 2.4 0 1 1 2.4 2.4h-2.4V8.64zm-1.2 0a2.4 2.4 0 1 1-4.8 0v-6a2.4 2.4 0 1 1 4.8 0v6zM15.36 18.96a2.4 2.4 0 1 1-2.4 2.4v-2.4h2.4zm0-1.2a2.4 2.4 0 1 1 0-4.8h6a2.4 2.4 0 1 1 0 4.8h-6z"/>
       </svg>
     ),
     webhook: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
       </svg>
     ),
   };
 
   return (
-    <div className="flex items-center justify-center shrink-0" style={{ width: 40, height: 40, borderRadius: 11, background: '#F3F3F3' }}>
-      {icons[id] ?? icons.webhook}
+    <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(0,0,0,.03)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+      {brandIcons[id] ?? brandIcons.webhook}
     </div>
   );
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   GLASS CARD
-   ═══════════════════════════════════════════════════════════════ */
 
 const glassCard: React.CSSProperties = {
   background: 'rgba(255,255,255,0.7)',
@@ -85,40 +55,69 @@ const glassCard: React.CSSProperties = {
   borderRadius: 14,
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   PAGE
-   ═══════════════════════════════════════════════════════════════ */
+// Descriptions for our supported connectors
+const CONNECTOR_DESCRIPTIONS: Record<string, string> = {
+  gmail: 'Send and read emails from Gmail',
+  slack: 'Send messages and manage Slack channels',
+  shopify: 'Manage products, orders, and customers',
+  hubspot: 'CRM contacts, deals, and pipeline',
+  stripe: 'Payments, invoices, and subscriptions',
+  notion: 'Pages, databases, and workspace',
+  'google-calendar': 'Events, scheduling, and availability',
+  'google-sheets': 'Spreadsheets, rows, and formulas',
+  airtable: 'Bases, tables, and records',
+  webhook: 'Custom HTTP webhooks',
+};
+
+const CONNECTOR_NAMES: Record<string, string> = {
+  gmail: 'Gmail',
+  slack: 'Slack',
+  shopify: 'Shopify',
+  hubspot: 'HubSpot',
+  stripe: 'Stripe',
+  notion: 'Notion',
+  'google-calendar': 'Google Calendar',
+  'google-sheets': 'Google Sheets',
+  airtable: 'Airtable',
+  webhook: 'Webhook',
+};
+
+const SUPPORTED_CONNECTORS = ['gmail', 'slack', 'shopify', 'hubspot', 'stripe', 'notion', 'google-calendar', 'google-sheets', 'airtable', 'webhook'];
 
 export default function ConnectionsPage() {
-  const { connections, availableTypes, loading, error, fetch: refetch, disconnect, startOAuth } = useConnectionsStore();
+  const { connections, loading, error, fetch: refetch, connect } = useConnectionsStore();
   const [connectingId, setConnectingId] = useState<string | null>(null);
 
-  // Build a merged list: each connector type with its connection status
-  const connectorCards = availableTypes.map((type) => {
-    const conn = connections.find((c) => c.connector_type_id === type.id && c.status === 'active');
-    return { type, connection: conn };
+  useEffect(() => { refetch(); }, [refetch]);
+
+  // Build card list: merge Composio status with our known connectors
+  const connectorCards = SUPPORTED_CONNECTORS.map((id) => {
+    const composioStatus = connections.find((c) => c.connector_type === id);
+    return {
+      id,
+      name: composioStatus?.name || CONNECTOR_NAMES[id] || id,
+      description: CONNECTOR_DESCRIPTIONS[id] || '',
+      connected: composioStatus?.connected ?? false,
+      isNoAuth: composioStatus?.isNoAuth ?? false,
+    };
   });
 
-  const handleConnect = async (typeId: string) => {
-    setConnectingId(typeId);
+  const handleConnect = async (connectorType: string) => {
+    setConnectingId(connectorType);
     try {
-      await startOAuth(typeId);
+      await connect(connectorType);
     } catch {
       setConnectingId(null);
     }
   };
 
-  const handleDisconnect = async (connId: string) => {
-    await disconnect(connId);
-  };
-
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 28px 80px' }}>
-      <h1 className="m-0 mb-1" style={{ fontSize: 24, fontWeight: 700, color: '#1A1A1A', letterSpacing: '-0.02em' }}>
+      <h1 style={{ fontSize: 24, fontWeight: 400, color: '#1A1A1A', fontFamily: 'var(--font-outfit)', letterSpacing: '-0.03em', margin: '0 0 4px' }}>
         Connections
       </h1>
-      <p className="m-0 mb-6" style={{ fontSize: 14, color: '#999' }}>
-        Connect your business tools so agents can take real actions on your behalf.
+      <p style={{ fontSize: 13.5, color: '#999', margin: '0 0 24px', fontFamily: 'var(--font-body)' }}>
+        Connect your business tools so agents can take real actions on your behalf. One-click setup — we handle all the security.
       </p>
 
       {loading ? (
@@ -133,32 +132,30 @@ export default function ConnectionsPage() {
             Retry
           </button>
         </div>
-      ) : connectorCards.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 16px', color: '#CCC', fontSize: 13 }}>
-          No connectors available.
-        </div>
       ) : (
         <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))' }}>
-          {connectorCards.map(({ type, connection }, i) => (
+          {connectorCards.map(({ id, name, description, connected }, i) => (
             <div
-              key={type.id}
+              key={id}
               style={{
                 ...glassCard,
                 padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
                 animation: `cardIn 0.25s ease ${i * 30}ms both`,
               }}
             >
-              <div className="flex items-start gap-3 mb-3">
-                <ConnectorIcon id={type.id} />
+              <div className="flex items-start gap-3" style={{ flex: 1, marginBottom: 14 }}>
+                <ConnectorIcon id={id} />
                 <div className="flex-1 min-w-0">
                   <div style={{ fontSize: 14, fontWeight: 650, color: '#1A1A1A', lineHeight: 1.25, marginBottom: 2 }}>
-                    {type.name}
+                    {name}
                   </div>
-                  <div style={{ fontSize: 12.5, color: '#999' }}>{type.description}</div>
+                  <div style={{ fontSize: 12.5, color: '#999' }}>{description}</div>
                 </div>
               </div>
 
-              {connection ? (
+              {connected ? (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -166,33 +163,22 @@ export default function ConnectionsPage() {
                     </svg>
                     <span style={{ fontSize: 12, color: '#059669', fontWeight: 500 }}>Connected</span>
                   </div>
-                  <button
-                    onClick={() => handleDisconnect(connection.id)}
-                    style={{
-                      fontSize: 11.5, fontWeight: 500, color: '#CCC', background: 'none',
-                      border: 'none', cursor: 'pointer', transition: 'color 0.15s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#DC2626')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = '#CCC')}
-                  >
-                    Disconnect
-                  </button>
                 </div>
               ) : (
                 <button
-                  onClick={() => handleConnect(type.id)}
-                  disabled={connectingId === type.id}
+                  onClick={() => handleConnect(id)}
+                  disabled={connectingId === id}
                   style={{
                     width: '100%', fontSize: 13, fontWeight: 600, color: '#1A1A1A',
                     background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)',
                     borderRadius: 8, padding: '8px 0',
-                    cursor: connectingId === type.id ? 'not-allowed' : 'pointer',
-                    opacity: connectingId === type.id ? 0.5 : 1, transition: 'all 0.15s',
+                    cursor: connectingId === id ? 'not-allowed' : 'pointer',
+                    opacity: connectingId === id ? 0.5 : 1, transition: 'all 0.15s',
                   }}
-                  onMouseEnter={(e) => { if (connectingId !== type.id) e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
+                  onMouseEnter={(e) => { if (connectingId !== id) e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
                 >
-                  {connectingId === type.id ? 'Connecting...' : 'Connect'}
+                  {connectingId === id ? 'Connecting...' : 'Connect'}
                 </button>
               )}
             </div>

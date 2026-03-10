@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Check, Zap, Loader2 } from 'lucide-react';
+import { X, Check, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Plan {
@@ -9,36 +9,49 @@ interface Plan {
   name: string;
   price: string;
   priceNote: string;
-  credits: string;
+  tasks: string;
+  a2a: string;
   features: string[];
   popular?: boolean;
 }
 
 const PLANS: Plan[] = [
   {
+    id: 'free',
+    name: 'Free',
+    price: '$0',
+    priceNote: 'forever',
+    tasks: '50 tasks/mo',
+    a2a: '5 A2A workflows/mo',
+    features: ['3 active agents', 'Basic integrations (Gmail, Slack)', 'Agent Studio: build & test', 'Community support'],
+  },
+  {
     id: 'starter',
     name: 'Starter',
-    price: '$0',
-    priceNote: 'free forever',
-    credits: '500 credits/mo',
-    features: ['3 active agents', 'A2A orchestration & assembler', 'Basic integrations', 'Community support'],
+    price: '$29',
+    priceNote: '/month',
+    tasks: '250 tasks/mo',
+    a2a: '25 A2A workflows/mo',
+    features: ['10 active agents', 'All integrations', 'Agent Studio: build & publish', 'Marketplace publishing'],
   },
   {
     id: 'pro',
     name: 'Pro',
-    price: '$49',
+    price: '$99',
     priceNote: '/month',
-    credits: '5,000 credits/mo',
-    features: ['Unlimited agents', 'All 50+ integrations', 'Agent Studio — build & publish', 'Marketplace publishing'],
+    tasks: '1,500 tasks/mo',
+    a2a: '200 A2A workflows/mo',
+    features: ['Unlimited agents', 'All integrations', 'Scheduled agents & auto-runs', 'Priority support'],
     popular: true,
   },
   {
     id: 'business',
     name: 'Business',
-    price: '$249',
+    price: '$299',
     priceNote: '/month',
-    credits: '30,000 credits/mo',
-    features: ['All Pro features', 'SSO & role-based permissions', 'Priority support & onboarding', 'Custom connectors'],
+    tasks: '5,000 tasks/mo',
+    a2a: '1,000 A2A workflows/mo',
+    features: ['All Pro features', 'SSO & role-based permissions', 'Dedicated support & onboarding', 'Custom connectors'],
   },
 ];
 
@@ -94,15 +107,15 @@ export function UpgradeModal({ open, onClose, currentPlan = 'free', trigger }: U
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative glass-card-static w-full max-w-[900px] max-h-[90vh] overflow-y-auto">
+      <div className="relative glass-card-static w-full max-w-[1000px] max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-heading text-xl font-bold text-text-primary">
-              {trigger === 'limit_reached' ? 'Credit Limit Reached' : 'Upgrade Your Plan'}
+              {trigger === 'limit_reached' ? 'Task Limit Reached' : 'Upgrade Your Plan'}
             </h2>
             <p className="text-sm text-text-secondary mt-1">
               {trigger === 'limit_reached'
-                ? 'You\'ve used all credits for this period. Upgrade to continue.'
+                ? 'You\'ve used all tasks for this period. Upgrade or buy a task pack to continue.'
                 : 'Choose the plan that fits your needs.'}
             </p>
           </div>
@@ -114,7 +127,7 @@ export function UpgradeModal({ open, onClose, currentPlan = 'free', trigger }: U
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           {PLANS.map((plan) => {
             const isCurrent = plan.id === currentPlan;
             const isUpgrade = getPlanOrder(plan.id) > getPlanOrder(currentPlan);
@@ -143,10 +156,14 @@ export function UpgradeModal({ open, onClose, currentPlan = 'free', trigger }: U
                   <span className="text-xs text-text-tertiary ml-1">{plan.priceNote}</span>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4 space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-text-primary" strokeWidth={2} />
-                    <span className="text-xs font-medium text-text-primary">{plan.credits}</span>
+                    <Sparkles className="w-3.5 h-3.5 text-text-primary" strokeWidth={2} />
+                    <span className="text-xs font-medium text-text-primary">{plan.tasks}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-text-tertiary" strokeWidth={2} />
+                    <span className="text-xs font-medium text-text-secondary">{plan.a2a}</span>
                   </div>
                 </div>
 
@@ -161,7 +178,7 @@ export function UpgradeModal({ open, onClose, currentPlan = 'free', trigger }: U
 
                 <button
                   onClick={() => handleUpgrade(plan.id)}
-                  disabled={isCurrent || (plan.id === 'starter' && currentPlan === 'starter') || loading !== null}
+                  disabled={isCurrent || (plan.id === 'free' && currentPlan === 'free') || loading !== null}
                   className={cn(
                     'w-full py-2 rounded-[var(--radius-md)] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5',
                     isCurrent
@@ -172,7 +189,7 @@ export function UpgradeModal({ open, onClose, currentPlan = 'free', trigger }: U
                   )}
                 >
                   {loading === plan.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  {isCurrent ? 'Current Plan' : isUpgrade ? 'Upgrade' : plan.id === 'starter' ? 'Free' : 'Downgrade'}
+                  {isCurrent ? 'Current Plan' : isUpgrade ? 'Upgrade' : plan.id === 'free' ? 'Free' : 'Downgrade'}
                 </button>
               </div>
             );
@@ -180,7 +197,7 @@ export function UpgradeModal({ open, onClose, currentPlan = 'free', trigger }: U
         </div>
 
         <p className="text-[10px] text-text-tertiary text-center mt-4">
-          Credits reset monthly. Need more? Buy credit packs anytime on the pricing page.
+          Tasks reset monthly. Need more? Buy task packs anytime on the pricing page.
         </p>
       </div>
     </div>
@@ -188,6 +205,6 @@ export function UpgradeModal({ open, onClose, currentPlan = 'free', trigger }: U
 }
 
 function getPlanOrder(planId: string): number {
-  const order: Record<string, number> = { starter: 0, pro: 1, business: 2 };
+  const order: Record<string, number> = { free: 0, starter: 1, pro: 2, business: 3 };
   return order[planId] ?? 0;
 }

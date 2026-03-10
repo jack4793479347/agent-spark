@@ -1,24 +1,212 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/lib/supabase/auth';
-import { fetchMarketplaceAgents, apiAgentToMarketplace, formatPrice, type ApiAgent } from '@/lib/api';
+import { motion, AnimatePresence } from 'motion/react';
+import { PublicShell } from '@/components/layout/PublicShell';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Star } from 'lucide-react';
+import {
+  SiGmail, SiSlack, SiShopify, SiStripe, SiHubspot,
+  SiNotion, SiGithub, SiLinear, SiIntercom, SiZendesk,
+  SiJira, SiSalesforce, SiGooglesheets, SiGooglecalendar,
+  SiAirtable,
+} from 'react-icons/si';
 
-const CATEGORIES = ["All", "Sales", "Support", "Marketing", "Content", "E-commerce", "DevOps", "Finance", "HR", "Analytics", "Productivity"];
+/* ═══════════════════════════════════════════════════════════════
+   BRAND ICON MAP
+   ═══════════════════════════════════════════════════════════════ */
 
-const CATEGORY_MAP: Record<string, string> = {
-  'Sales': 'sales',
-  'Support': 'customer-support',
-  'Marketing': 'marketing',
-  'Content': 'content',
-  'E-commerce': 'ecommerce',
-  'DevOps': 'development',
-  'Finance': 'finance',
-  'HR': 'hr',
-  'Analytics': 'analytics',
-  'Productivity': 'productivity',
+const BRAND_ICON: Record<string, React.ReactNode> = {
+  Gmail: <SiGmail size={14} />,
+  Slack: <SiSlack size={14} />,
+  Shopify: <SiShopify size={14} />,
+  Stripe: <SiStripe size={14} />,
+  HubSpot: <SiHubspot size={14} />,
+  Notion: <SiNotion size={14} />,
+  GitHub: <SiGithub size={14} />,
+  Linear: <SiLinear size={14} />,
+  Intercom: <SiIntercom size={14} />,
+  Zendesk: <SiZendesk size={14} />,
+  Jira: <SiJira size={14} />,
+  Salesforce: <SiSalesforce size={14} />,
+  "Google Sheets": <SiGooglesheets size={14} />,
+  "Google Calendar": <SiGooglecalendar size={14} />,
+  Airtable: <SiAirtable size={14} />,
 };
+
+const BRAND_ICON_LG: Record<string, React.ReactNode> = {
+  Gmail: <SiGmail size={22} />,
+  Slack: <SiSlack size={22} />,
+  Shopify: <SiShopify size={22} />,
+  Stripe: <SiStripe size={22} />,
+  HubSpot: <SiHubspot size={22} />,
+  Notion: <SiNotion size={22} />,
+  GitHub: <SiGithub size={22} />,
+  Linear: <SiLinear size={22} />,
+  Intercom: <SiIntercom size={22} />,
+  Zendesk: <SiZendesk size={22} />,
+  Jira: <SiJira size={22} />,
+  Salesforce: <SiSalesforce size={22} />,
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   AGENT DATA
+   ═══════════════════════════════════════════════════════════════ */
+
+interface AgentCard {
+  name: string;
+  desc: string;
+  price: string;
+  unit: string;
+  by: string;
+  rating: number;
+  reviews: number;
+  integrations: string[];
+  category: string;
+  image: string;
+}
+
+const SHOWCASE_AGENTS: AgentCard[] = [
+  { name: "Shopify Returns Handler", desc: "Processes return requests, validates orders, and issues refunds automatically through Shopify API.", price: "$1.00", unit: "/call", by: "ShipStack", rating: 4.7, reviews: 84, integrations: ["Shopify", "Slack"], category: "E-commerce", image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=300&fit=crop" },
+  { name: "Smart Email Responder", desc: "Sends contextual replies, follow-ups, and status updates to customers based on conversation history.", price: "$0.50", unit: "/call", by: "AgentLabs", rating: 4.9, reviews: 203, integrations: ["Gmail", "Intercom"], category: "Communication", image: "https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=600&h=300&fit=crop" },
+  { name: "Lead Qualifier Pro", desc: "Scores inbound leads against your ICP, enriches data, and routes hot prospects to your sales team.", price: "$2.00", unit: "/call", by: "PipelineAI", rating: 4.8, reviews: 156, integrations: ["HubSpot", "Slack"], category: "Sales", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=300&fit=crop" },
+  { name: "Invoice Processor", desc: "Extracts line items from invoices, matches to POs, and syncs to your accounting system automatically.", price: "$0.75", unit: "/call", by: "FinBot", rating: 4.6, reviews: 67, integrations: ["Stripe", "Google Sheets"], category: "Finance", image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=300&fit=crop" },
+  { name: "Content Calendar Agent", desc: "Plans, drafts, and schedules social media posts across platforms based on your brand guidelines.", price: "$3.00", unit: "/call", by: "ContentCo", rating: 4.5, reviews: 112, integrations: ["Notion", "Slack"], category: "Marketing", image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&h=300&fit=crop" },
+  { name: "Customer Support Triage", desc: "Classifies incoming tickets by urgency and topic, drafts initial responses, and escalates when needed.", price: "$0.30", unit: "/call", by: "SupportFlow", rating: 4.9, reviews: 341, integrations: ["Intercom", "Slack"], category: "Support", image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&h=300&fit=crop" },
+  { name: "Meeting Scheduler", desc: "Coordinates availability across team calendars and proposes optimal meeting times to external contacts.", price: "Free", unit: "", by: "CalSync", rating: 4.4, reviews: 89, integrations: ["Google Calendar", "Gmail"], category: "Productivity", image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=600&h=300&fit=crop" },
+  { name: "Inventory Sync Agent", desc: "Keeps inventory counts in sync across Shopify, warehouses, and spreadsheets in real time.", price: "$1.50", unit: "/call", by: "StockBot", rating: 4.7, reviews: 78, integrations: ["Shopify", "Airtable"], category: "E-commerce", image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=300&fit=crop" },
+  { name: "Competitive Intel Monitor", desc: "Tracks competitor pricing, product launches, and marketing campaigns. Delivers weekly digest reports.", price: "$5.00", unit: "/mo", by: "IntelAgent", rating: 4.3, reviews: 45, integrations: ["Notion", "Gmail"], category: "Research", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=300&fit=crop" },
+  { name: "Onboarding Coordinator", desc: "Guides new hires through onboarding steps, sends reminders, and collects document signatures.", price: "$2.00", unit: "/call", by: "PeopleOps", rating: 4.6, reviews: 92, integrations: ["Slack", "Google Calendar"], category: "HR", image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&h=300&fit=crop" },
+  { name: "Deal Closer Assistant", desc: "Drafts proposals, follows up on stale opportunities, and updates pipeline stages in your CRM.", price: "$3.00", unit: "/call", by: "CloserAI", rating: 4.8, reviews: 134, integrations: ["HubSpot", "Gmail"], category: "Sales", image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=300&fit=crop" },
+  { name: "Data Cleaner", desc: "Deduplicates records, normalizes formats, and flags anomalies across your connected data sources.", price: "$1.00", unit: "/call", by: "CleanSheet", rating: 4.5, reviews: 61, integrations: ["Airtable", "Google Sheets"], category: "Data", image: "https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=600&h=300&fit=crop" },
+];
+
+const col1 = SHOWCASE_AGENTS.slice(0, 4);
+const col2 = SHOWCASE_AGENTS.slice(4, 8);
+const col3 = SHOWCASE_AGENTS.slice(8, 12);
+
+/* ═══════════════════════════════════════════════════════════════
+   AGENT CARD — workflow-builder style
+   ═══════════════════════════════════════════════════════════════ */
+
+function AgentWorkflowCard({ agent }: { agent: AgentCard }) {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  return (
+    <motion.div
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      className="w-[280px] cursor-pointer"
+    >
+      <Card className="overflow-hidden rounded-xl border-white/30 bg-white/20 backdrop-blur-xl shadow-sm transition-shadow duration-300 hover:shadow-lg">
+        {/* Image */}
+        <div className="relative h-28 w-full overflow-hidden">
+          <img
+            src={agent.image}
+            alt={agent.name}
+            className="h-full w-full object-cover transition-transform duration-500"
+            style={{ transform: isHovered ? "scale(1.05)" : "scale(1)" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          {/* Price overlay */}
+          <div className="absolute bottom-2 left-3 flex items-baseline gap-1">
+            <span className="text-sm font-semibold text-white drop-shadow-md">{agent.price}</span>
+            {agent.unit && <span className="text-[10px] text-white/70">{agent.unit}</span>}
+          </div>
+          {/* Rating overlay */}
+          <div className="absolute bottom-2 right-3 flex items-center gap-1 rounded-full bg-black/20 backdrop-blur-sm px-2 py-0.5">
+            <Star size={10} fill="#F59E0B" stroke="none" />
+            <span className="text-[11px] font-semibold text-white">{agent.rating}</span>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-3.5">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2 text-[10.5px] text-[#999]">
+                <span className="font-medium">{agent.category}</span>
+                <span>·</span>
+                <div className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                  <span>Active</span>
+                </div>
+              </div>
+              <h3 className="mt-1 text-[14px] font-semibold text-[#1A1A1A] leading-tight">{agent.name}</h3>
+            </div>
+          </div>
+
+          {/* Hover-reveal description + tags */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                key="details"
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: "auto", marginTop: 8, transition: { duration: 0.25, ease: "easeInOut" } }}
+                exit={{ opacity: 0, height: 0, marginTop: 0, transition: { duration: 0.2 } }}
+                className="overflow-hidden"
+              >
+                <p className="text-[12px] text-[#888] leading-relaxed">{agent.desc}</p>
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  <Badge variant="secondary" className="text-[10px] bg-black/[.03] border-0 text-[#888] font-medium">{agent.category}</Badge>
+                  <Badge variant="secondary" className="text-[10px] bg-black/[.03] border-0 text-[#888] font-medium">{agent.reviews} reviews</Badge>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-black/[.04] px-3.5 py-2.5">
+          <span className="text-[11px] text-[#BBB]">
+            by <span className="font-semibold text-[#999]">{agent.by}</span>
+          </span>
+          <div className="flex items-center -space-x-1.5">
+            {agent.integrations.map((name) => (
+              <div
+                key={name}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/60 border border-black/[.04] text-[#888]"
+                title={name}
+              >
+                {BRAND_ICON[name] ? React.cloneElement(BRAND_ICON[name] as React.ReactElement, { size: 11 }) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLLING COLUMN
+   ═══════════════════════════════════════════════════════════════ */
+
+function AgentColumn({ agents, duration, className }: { agents: AgentCard[]; duration: number; className?: string }) {
+  return (
+    <div className={className} style={{ overflow: "hidden" }}>
+      <motion.div
+        animate={{ translateY: "-50%" }}
+        transition={{ duration, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+        className="flex flex-col gap-4 pb-4"
+      >
+        {[0, 1].map((loop) => (
+          <React.Fragment key={loop}>
+            {agents.map((agent, i) => (
+              <AgentWorkflowCard key={`${loop}-${i}`} agent={agent} />
+            ))}
+          </React.Fragment>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STEPS + MARQUEE DATA
+   ═══════════════════════════════════════════════════════════════ */
 
 const STEPS = [
   { num: "01", title: "Describe your goal", desc: "Tell us what you want to automate in plain English. No technical knowledge required." },
@@ -26,342 +214,132 @@ const STEPS = [
   { num: "03", title: "Activate and run", desc: "One click to deploy. Your AI team handles the work while you focus on growth." },
 ];
 
-function NavBar() {
-  const { user } = useAuth();
-  const [prodOpen, setProdOpen] = useState(false);
-  const prodTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+const MARQUEE_INTEGRATIONS = ["Gmail", "Slack", "Shopify", "Stripe", "HubSpot", "Notion", "GitHub", "Linear", "Intercom", "Zendesk", "Jira", "Salesforce"];
 
+function IntegrationChip({ name }: { name: string }) {
   return (
-    <nav style={{
-      position: "relative", zIndex: 20, display: "flex", justifyContent: "space-between", alignItems: "center",
-      padding: "10px 28px", background: "rgba(255,255,255,0.3)", backdropFilter: "blur(24px)",
-      borderBottom: "1px solid rgba(255,255,255,0.4)",
-    }}>
-      <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        </div>
-        <span style={{ fontWeight: 700, fontSize: 17, color: "#1A1A1A", letterSpacing: "-0.02em", fontFamily: "var(--font-space-grotesk), 'Space Grotesk', sans-serif" }}>Agent Spark</span>
-      </Link>
-
-      <div style={{ display: "flex", gap: 0, alignItems: "center" }}>
-        <Link href="/" style={{ fontSize: 14, fontWeight: 500, color: "#666", textDecoration: "none", padding: "8px 12px", borderRadius: 8, fontFamily: "var(--font-body), 'DM Sans', sans-serif", transition: "all 0.12s ease" }}
-        onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#1A1A1A"; e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
-        onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#666"; e.currentTarget.style.background = "transparent"; }}
-        >Home</Link>
-
-        <div style={{ position: "relative" }}
-          onMouseEnter={() => { if (prodTimeout.current) clearTimeout(prodTimeout.current); setProdOpen(true); }}
-          onMouseLeave={() => { prodTimeout.current = setTimeout(() => setProdOpen(false), 120); }}>
-          <button onClick={() => setProdOpen(!prodOpen)} style={{
-            fontSize: 14, fontWeight: 500, color: prodOpen ? "#1A1A1A" : "#666",
-            background: "transparent", border: "none", padding: "8px 12px", cursor: "pointer",
-            fontFamily: "var(--font-body), 'DM Sans', sans-serif", display: "inline-flex", alignItems: "center", gap: 3,
-            borderRadius: 8, transition: "all 0.15s ease",
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { if (!prodOpen) e.currentTarget.style.color = "#1A1A1A"; }}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { if (!prodOpen) e.currentTarget.style.color = "#666"; }}
-          >
-            Products
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              style={{ transition: "transform 0.25s ease", transform: prodOpen ? "rotate(180deg)" : "rotate(0deg)", opacity: 0.45 }}>
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-          {prodOpen && (
-            <div style={{
-              position: "absolute", top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)",
-              background: "rgba(255,255,255,0.82)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
-              border: "1px solid rgba(0,0,0,0.06)", borderRadius: 12,
-              boxShadow: "0 16px 48px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04)",
-              padding: 6, zIndex: 100, width: 280, animation: "dropIn 0.18s ease both",
-            }}>
-              {[
-                { title: "Workflow Assembler", href: "/products/assembler" },
-                { title: "Agent Studio", href: "/products/studio" },
-                { title: "A2A Orchestration", href: "/products/orchestration" },
-              ].map((item, i) => (
-                <Link key={i} href={item.href} style={{
-                  display: "block", padding: "9px 12px", borderRadius: 8,
-                  textDecoration: "none", fontSize: 13, fontWeight: 550, color: "#1A1A1A",
-                  fontFamily: "var(--font-body), 'DM Sans', sans-serif", transition: "background 0.12s ease",
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.background = "rgba(0,0,0,0.035)"}
-                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.background = "transparent"}
-                >{item.title}</Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <Link href="/marketplace" style={{
-          fontSize: 14, fontWeight: 600, color: "#1A1A1A", textDecoration: "none",
-          padding: "8px 12px", borderRadius: 8, fontFamily: "var(--font-body), 'DM Sans', sans-serif",
-          background: "rgba(0,0,0,0.04)", transition: "all 0.12s ease",
-        }}>Marketplace</Link>
-
-        <Link href="/about" style={{ fontSize: 14, fontWeight: 500, color: "#666", textDecoration: "none", padding: "8px 12px", borderRadius: 8, fontFamily: "var(--font-body), 'DM Sans', sans-serif", transition: "all 0.12s ease" }}
-        onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#1A1A1A"; e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
-        onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#666"; e.currentTarget.style.background = "transparent"; }}
-        >About</Link>
-
-        <Link href="/pricing" style={{ fontSize: 14, fontWeight: 500, color: "#666", textDecoration: "none", padding: "8px 12px", borderRadius: 8, fontFamily: "var(--font-body), 'DM Sans', sans-serif", transition: "all 0.12s ease" }}
-        onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#1A1A1A"; e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
-        onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#666"; e.currentTarget.style.background = "transparent"; }}
-        >Pricing</Link>
-      </div>
-
-      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-        {user ? (
-          <Link href="/dashboard" style={{
-            fontSize: 13.5, fontWeight: 600, color: "#FFF", textDecoration: "none",
-            background: "#1A1A1A", border: "none", padding: "8px 18px", borderRadius: 9,
-            fontFamily: "var(--font-body), 'DM Sans', sans-serif", transition: "all 0.15s ease",
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.background = "#333"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-          onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.background = "#1A1A1A"; e.currentTarget.style.transform = "translateY(0)"; }}
-          >Dashboard</Link>
-        ) : (
-          <>
-            <Link href="/auth" style={{ fontSize: 14, fontWeight: 500, color: "#666", textDecoration: "none", padding: "8px 12px", borderRadius: 8, fontFamily: "var(--font-body), 'DM Sans', sans-serif", transition: "all 0.12s ease" }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#1A1A1A"; e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#666"; e.currentTarget.style.background = "transparent"; }}
-            >Log in</Link>
-            <Link href="/auth?mode=signup" style={{
-              fontSize: 13.5, fontWeight: 600, color: "#FFF", textDecoration: "none",
-              background: "#1A1A1A", padding: "8px 18px", borderRadius: 9,
-              fontFamily: "var(--font-body), 'DM Sans', sans-serif", transition: "all 0.15s ease",
-            }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.background = "#333"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.background = "#1A1A1A"; e.currentTarget.style.transform = "translateY(0)"; }}
-            >Get Started</Link>
-          </>
-        )}
-      </div>
-    </nav>
+    <div className="flex items-center gap-2 shrink-0 bg-white/45 border border-black/[.04] rounded-[10px] px-4 py-2.5 transition-all">
+      <span className="flex text-[#666]">{BRAND_ICON_LG[name]}</span>
+      <span className="text-[13px] text-[#555] font-medium">{name}</span>
+    </div>
   );
 }
 
-export default function MarketplaceExplainer() {
-  const [activeCat, setActiveCat] = useState("All");
-  const [agents, setAgents] = useState<{ name: string; by: string; desc: string; price: string; rating: number; rentals: string; tag: string; slug: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+/* ═══════════════════════════════════════════════════════════════
+   PAGE
+   ═══════════════════════════════════════════════════════════════ */
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const { agents: raw } = await fetchMarketplaceAgents({ sortBy: 'popular', pageSize: 12 });
-        if (cancelled) return;
-        setAgents(raw.map(a => {
-          const m = apiAgentToMarketplace(a);
-          return { name: m.name, by: m.creator, desc: m.desc, price: m.price, rating: m.rating, rentals: m.rentals, tag: a.category, slug: m.slug };
-        }));
-      } catch {
-        // API unavailable — show empty state
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
-
-  const filtered = activeCat === "All" ? agents : agents.filter(a => {
-    const catSlug = CATEGORY_MAP[activeCat];
-    return a.tag === catSlug || a.tag === activeCat.toLowerCase();
-  });
-
+export default function MarketplacePage() {
   return (
-    <div style={{ minHeight: "100vh", background: "#F2F3F6", position: "relative", fontFamily: "var(--body)" }}>
-      <style>{`
-        @keyframes fadeUp { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes dropIn { from { opacity:0; transform:translateX(-50%) translateY(3px) scale(.97) } to { opacity:1; transform:translateX(-50%) translateY(0) scale(1) } }
-        @keyframes blobA { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(3%,-5%) scale(1.05)} 100%{transform:translate(0,0) scale(1)} }
-        @keyframes blobB { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-4%,4%) scale(1.04)} 100%{transform:translate(0,0) scale(1)} }
-        ::selection { background:#1A1A1A; color:#fff }
-      `}</style>
+    <PublicShell>
+      <div style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif" }}>
+        <style>{`
+          @keyframes fadeUp { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:translateY(0) } }
+          @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+          ::selection { background:#1A1A1A; color:#fff }
+        `}</style>
 
-      {/* BG */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
-        <div style={{ position: "absolute", top: "-10%", right: "-5%", width: "50vw", height: "50vw", maxWidth: 700, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(255,150,130,.1) 0%, transparent 60%)", animation: "blobA 28s ease-in-out infinite", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", top: "40%", left: "-8%", width: "40vw", height: "40vw", maxWidth: 550, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(120,170,255,.08) 0%, transparent 60%)", animation: "blobB 32s ease-in-out infinite", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", inset: 0, backgroundSize: "24px 24px", backgroundImage: "radial-gradient(circle, rgba(0,0,0,.015) 1px, transparent 1px)" }} />
-      </div>
+        <div style={{ position: "relative", zIndex: 10 }}>
 
-      <NavBar />
-
-      <div style={{ position: "relative", zIndex: 10 }}>
-
-        {/* ===== HERO ===== */}
-        <div style={{ maxWidth: 700, margin: "0 auto", padding: "56px 20px 0", textAlign: "center", animation: "fadeUp .5s ease" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, color: "#999", background: "rgba(255,255,255,.4)", borderRadius: 6, padding: "4px 10px", marginBottom: 14, fontFamily: "var(--body)", letterSpacing: "0.03em", textTransform: "uppercase" }}>
-            Agent Marketplace
-          </div>
-          <h1 style={{ fontSize: 38, fontWeight: 400, color: "#1A1A1A", fontFamily: "var(--head)", letterSpacing: "-0.04em", lineHeight: 1.15, marginBottom: 12 }}>
-            {"Rent AI agents that actually "}
-            <span style={{ fontStyle: "italic", fontWeight: 300 }}>work</span>
-          </h1>
-          <p style={{ fontSize: 15, color: "#AAA", fontFamily: "var(--body)", lineHeight: 1.55, maxWidth: 480, margin: "0 auto 24px" }}>
-            Browse a marketplace of pre-built AI agents made by developers and companies. Install in one click, pay per use, and automate anything from lead qualification to customer support.
-          </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
-            <Link href="/auth?mode=signup" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "10px 22px", background: "#1A1A1A", color: "#fff", borderRadius: 9, fontSize: 13.5, fontWeight: 600, textDecoration: "none", fontFamily: "var(--body)", transition: "all .15s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#333"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "#1A1A1A"; e.currentTarget.style.transform = ""; }}>
-              {"Browse Marketplace \u2192"}
-            </Link>
-            <Link href="/about" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "10px 18px", background: "rgba(255,255,255,.45)", border: "1px solid rgba(255,255,255,.55)", color: "#777", borderRadius: 9, fontSize: 13.5, fontWeight: 550, textDecoration: "none", fontFamily: "var(--body)", transition: "all .12s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.7)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.45)"; }}>
-              Learn More
-            </Link>
-          </div>
-        </div>
-
-        {/* ===== PREVIEW GRID ===== */}
-        <div style={{ maxWidth: 820, margin: "44px auto 0", padding: "0 20px", animation: "fadeUp .65s ease" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600, color: "#1A1A1A", fontFamily: "var(--body)" }}>Popular agents</h2>
-            <span style={{ fontSize: 11, color: "#CCC", fontFamily: "var(--body)" }}>{agents.length} agents available</span>
-          </div>
-
-          {/* Category tabs */}
-          <div style={{ display: "flex", gap: 3, marginBottom: 14, flexWrap: "wrap" }}>
-            {CATEGORIES.map(cat => {
-              const active = activeCat === cat;
-              return (
-                <button key={cat} onClick={() => setActiveCat(cat)} style={{
-                  fontSize: 11.5, fontWeight: active ? 600 : 450, color: active ? "#1A1A1A" : "#CCC",
-                  background: active ? "rgba(0,0,0,.04)" : "none",
-                  border: "1px solid " + (active ? "rgba(0,0,0,.05)" : "transparent"),
-                  borderRadius: 6, padding: "5px 10px", cursor: "pointer",
-                  fontFamily: "var(--body)", transition: "all .12s"
-                }}>{cat}</button>
-              );
-            })}
-          </div>
-
-          {/* Loading state */}
-          {loading && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-              {[1,2,3,4,5,6].map(i => (
-                <div key={i} style={{ padding: "14px 16px", background: "rgba(255,255,255,.3)", borderRadius: 12, border: "1px solid rgba(255,255,255,.4)", height: 120 }}>
-                  <div style={{ width: "60%", height: 12, background: "rgba(0,0,0,.04)", borderRadius: 4, marginBottom: 8 }} />
-                  <div style={{ width: "40%", height: 10, background: "rgba(0,0,0,.03)", borderRadius: 4, marginBottom: 12 }} />
-                  <div style={{ width: "100%", height: 10, background: "rgba(0,0,0,.02)", borderRadius: 4, marginBottom: 4 }} />
-                  <div style={{ width: "70%", height: 10, background: "rgba(0,0,0,.02)", borderRadius: 4 }} />
-                </div>
-              ))}
+          {/* ===== HEADER + SCROLLING CARDS ===== */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            style={{ padding: "0 0 40px" }}
+          >
+            <div style={{ textAlign: "center", padding: "20px 0 32px" }}>
+              <h1 style={{ fontSize: 32, fontWeight: 300, color: "#1A1A1A", letterSpacing: "-0.03em", margin: "0 0 8px" }}>
+                Marketplace
+              </h1>
+              <p style={{ fontSize: 14, color: "#999", margin: 0 }}>
+                Browse and rent AI agents that connect to your tools and run autonomously.
+              </p>
             </div>
-          )}
 
-          {/* Grid */}
-          {!loading && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-              {filtered.map((a, i) => (
-                <Link key={a.slug} href={`/browse/${a.slug}`} style={{ textDecoration: 'none' }}>
-                  <div style={{
-                    padding: "14px 16px", background: "rgba(255,255,255,.45)", borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,.55)", transition: "all .15s", cursor: "pointer",
-                    animation: "fadeUp .3s ease",
-                    animationDelay: (i * 50) + "ms",
-                    animationFillMode: "both"
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.7)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.45)"; e.currentTarget.style.transform = ""; }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A", fontFamily: "var(--body)", marginBottom: 1 }}>{a.name}</div>
-                        <div style={{ fontSize: 10.5, color: "#CCC", fontFamily: "var(--body)" }}>{a.by}</div>
-                      </div>
-                      <span style={{ fontSize: 9.5, fontWeight: 600, color: "#AAA", background: "rgba(0,0,0,.025)", borderRadius: 4, padding: "2px 6px", fontFamily: "var(--body)", flexShrink: 0 }}>{a.tag}</span>
-                    </div>
-                    <p style={{ fontSize: 11.5, color: "#AAA", lineHeight: 1.4, fontFamily: "var(--body)", marginBottom: 10, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{a.desc}</p>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        <span style={{ fontWeight: 600, color: "#1A1A1A", fontFamily: "var(--body)" }}>{a.rating}</span>
-                        <span style={{ color: "#DDD", fontFamily: "var(--body)" }}>{"\u00B7 " + a.rentals}</span>
-                      </span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: a.price === "Free" ? "#22C55E" : "#1A1A1A", fontFamily: "var(--body)" }}>{a.price}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+            <div style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 16,
+              maxHeight: 740,
+              overflow: "hidden",
+              maskImage: "linear-gradient(to bottom, transparent, black 6%, black 90%, transparent)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent, black 6%, black 90%, transparent)",
+            }}>
+              <AgentColumn agents={col1} duration={26} />
+              <AgentColumn agents={col2} duration={32} className="hidden md:block" />
+              <AgentColumn agents={col3} duration={29} className="hidden lg:block" />
             </div>
-          )}
+          </motion.div>
 
-          {!loading && filtered.length === 0 && (
-            <div style={{ textAlign: "center", padding: "32px 0" }}>
-              <p style={{ fontSize: 13, color: "#CCC", fontFamily: "var(--body)" }}>No agents in this category yet.</p>
-            </div>
-          )}
-
-          <div style={{ textAlign: "center", marginTop: 16 }}>
-            <Link href="/auth?mode=signup" style={{ fontSize: 12, color: "#BBB", textDecoration: "none", fontFamily: "var(--body)", fontWeight: 550, transition: "color .12s" }}
-              onMouseEnter={e => { e.currentTarget.style.color = "#888"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#BBB"; }}>
-              {"Sign up to see all agents \u2192"}
-            </Link>
-          </div>
-        </div>
-
-        {/* ===== HOW IT WORKS ===== */}
-        <div style={{ maxWidth: 700, margin: "44px auto 0", padding: "0 20px", animation: "fadeUp .75s ease" }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: "#1A1A1A", fontFamily: "var(--body)", textAlign: "center", marginBottom: 20 }}>How it works</h2>
-          <div style={{ display: "flex", gap: 12 }}>
-            {STEPS.map((step, i) => (
-              <div key={i} style={{ flex: 1, padding: "18px 16px", background: "rgba(255,255,255,.4)", borderRadius: 12, border: "1px solid rgba(255,255,255,.5)", position: "relative" }}>
-                <div style={{ fontSize: 28, fontWeight: 300, color: "rgba(0,0,0,.15)", fontFamily: "var(--head)", letterSpacing: "-0.03em", marginBottom: 8, lineHeight: 1 }}>{step.num}</div>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1A1A", fontFamily: "var(--body)", marginBottom: 4 }}>{step.title}</div>
-                <p style={{ fontSize: 12, color: "#BBB", fontFamily: "var(--body)", lineHeight: 1.45, margin: 0 }}>{step.desc}</p>
-                {i < STEPS.length - 1 && (
-                  <div style={{ position: "absolute", right: -8, top: "50%", transform: "translateY(-50%)", color: "#DDD" }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                )}
+          {/* ===== INTEGRATIONS MARQUEE ===== */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
+            style={{ maxWidth: 860, margin: "0 auto 40px", padding: "0 20px" }}
+          >
+            <div style={{
+              background: "rgba(255,255,255,.2)",
+              backdropFilter: "blur(24px) saturate(1.5)",
+              WebkitBackdropFilter: "blur(24px) saturate(1.5)",
+              border: "1px solid rgba(255,255,255,.4)",
+              borderRadius: 16,
+              padding: "20px 0",
+              overflow: "hidden",
+              position: "relative",
+              boxShadow: "0 8px 32px rgba(0,0,0,.03)",
+            }}>
+              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 80, background: "linear-gradient(to right, rgba(245,245,250,0.9), transparent)", zIndex: 2 }} />
+              <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 80, background: "linear-gradient(to left, rgba(245,245,250,0.9), transparent)", zIndex: 2 }} />
+              <div style={{ display: "flex", gap: 12, animation: "marquee 35s linear infinite", width: "max-content" }}>
+                {[...MARQUEE_INTEGRATIONS, ...MARQUEE_INTEGRATIONS].map((name, i) => (
+                  <IntegrationChip key={i} name={name} />
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ===== CREATOR CTA ===== */}
-        <div style={{ maxWidth: 700, margin: "36px auto 0", padding: "0 20px", animation: "fadeUp .85s ease" }}>
-          <div style={{ display: "flex", alignItems: "center", padding: "20px 24px", background: "rgba(255,255,255,.45)", borderRadius: 14, border: "1px solid rgba(255,255,255,.55)", gap: 20 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A1A", fontFamily: "var(--head)", letterSpacing: "-0.02em", marginBottom: 4 }}>Build agents, earn revenue</div>
-              <p style={{ fontSize: 12.5, color: "#AAA", fontFamily: "var(--body)", lineHeight: 1.45, margin: 0 }}>Publish your AI agents to the marketplace and earn 85% of every rental. Our SDK makes it simple to build, test, and ship agents that businesses actually need.</p>
             </div>
-            <Link href="/auth?mode=signup" style={{ flexShrink: 0, padding: "9px 18px", background: "rgba(0,0,0,.04)", border: "1px solid rgba(0,0,0,.04)", color: "#1A1A1A", borderRadius: 8, fontSize: 12.5, fontWeight: 600, textDecoration: "none", fontFamily: "var(--body)", transition: "all .12s", whiteSpace: "nowrap" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,0,0,.07)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,0,0,.04)"; }}>
-              {"Start Building \u2192"}
-            </Link>
-          </div>
-        </div>
+          </motion.div>
 
-        {/* ===== BOTTOM CTA ===== */}
-        <div style={{ maxWidth: 700, margin: "36px auto 0", padding: "0 20px 56px", textAlign: "center" }}>
-          <div style={{ padding: "32px 24px", background: "rgba(255,255,255,.45)", borderRadius: 16, border: "1px solid rgba(255,255,255,.55)" }}>
-            <h2 style={{ fontSize: 20, fontWeight: 400, color: "#1A1A1A", fontFamily: "var(--head)", letterSpacing: "-0.03em", marginBottom: 6 }}>Ready to automate?</h2>
-            <p style={{ fontSize: 13, color: "#BBB", fontFamily: "var(--body)", marginBottom: 18 }}>Create a free account to browse the full marketplace and install your first agent.</p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
-              <Link href="/auth?mode=signup" style={{ padding: "10px 22px", background: "#1A1A1A", color: "#fff", borderRadius: 9, fontSize: 13, fontWeight: 600, textDecoration: "none", fontFamily: "var(--body)", transition: "all .15s" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "#333"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "#1A1A1A"; e.currentTarget.style.transform = ""; }}>
-                {"Get Started Free \u2192"}
-              </Link>
-              <Link href="/pricing" style={{ padding: "10px 18px", background: "rgba(0,0,0,.03)", border: "1px solid rgba(0,0,0,.04)", color: "#888", borderRadius: 9, fontSize: 13, fontWeight: 550, textDecoration: "none", fontFamily: "var(--body)", transition: "all .12s" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,0,0,.06)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,0,0,.03)"; }}>
-                View Pricing
-              </Link>
+          {/* ===== HOW IT WORKS ===== */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
+            style={{ maxWidth: 640, margin: "0 auto 0", padding: "0 20px" }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              {STEPS.map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  viewport={{ once: true }}
+                  style={{
+                    display: "flex", alignItems: "flex-start", gap: 20,
+                    padding: "28px 0",
+                    borderBottom: i < STEPS.length - 1 ? "1px solid rgba(0,0,0,.05)" : "none",
+                  }}
+                >
+                  <span style={{ fontSize: 36, fontWeight: 200, color: "rgba(0,0,0,.08)", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, width: 48 }}>
+                    {step.num}
+                  </span>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: "#1A1A1A", marginBottom: 4, letterSpacing: "-0.01em" }}>{step.title}</div>
+                    <p style={{ fontSize: 14, color: "#888", lineHeight: 1.6, margin: 0 }}>{step.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
 
+          <div style={{ height: 20 }} />
+
+        </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }

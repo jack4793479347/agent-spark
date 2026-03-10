@@ -31,7 +31,10 @@
       "Bash(xargs -I{} taskkill //F //PID {})",
       "Bash(docker:*)",
       "Bash(sed 's/.*\"\"text\"\":\"\"//')",
-      "Bash(sed 's/\"\".*//')"
+      "Bash(sed 's/\"\".*//')",
+      "Bash(source:*)",
+      "Bash(export:*)",
+      "Bash(PATH=\"/Users/jackprice/.nvm/versions/node/v20.20.1/bin:/usr/bin:/bin\" /Users/jackprice/.nvm/versions/node/v20.20.1/bin/node:*)"
     ]
   }
 }

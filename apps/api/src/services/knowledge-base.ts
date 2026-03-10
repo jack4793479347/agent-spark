@@ -94,9 +94,74 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
 
   const results: number[][] = [];
 
-  // Process in batches
+  // Process in batches with retry logic for rate limits
   for (let i = 0; i < texts.length; i += MAX_EMBED_BATCH) {
     const batch = texts.slice(i, i + MAX_EMBED_BATCH);
+
+    let lastError = '';
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (attempt > 0) {
+        // Exponential backoff: 2s, 5s, 15s
+        const delay = [2000, 5000, 15000][attempt - 1] ?? 15000;
+        await new Promise((r) => setTimeout(r, delay));
+      }
+
+      const res = await fetch(VOYAGE_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getVoyageKey()}`,
+        },
+        body: JSON.stringify({
+          model: VOYAGE_MODEL,
+          input: batch,
+          input_type: 'document',
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json() as {
+          data: Array<{ embedding: number[] }>;
+        };
+        results.push(...data.data.map((d) => d.embedding));
+        lastError = '';
+        break;
+      }
+
+      const errText = await res.text();
+      lastError = errText;
+
+      // Only retry on rate limit (429) or server error (5xx)
+      if (res.status !== 429 && res.status < 500) {
+        throw new Error(`Voyage AI embedding failed: ${errText}`);
+      }
+    }
+
+    if (lastError) {
+      throw new Error(`Voyage AI rate limit exceeded after retries. Try uploading fewer files at once.`);
+    }
+
+    // Small delay between batches to avoid rate limits
+    if (i + MAX_EMBED_BATCH < texts.length) {
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Embed a single query for retrieval (uses input_type: 'query').
+ * Includes retry logic for rate limits (free tier = 3 RPM).
+ */
+export async function embedQuery(text: string): Promise<number[]> {
+  let lastError = '';
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) {
+      const delay = [2000, 5000, 15000][attempt - 1] ?? 15000;
+      await new Promise((r) => setTimeout(r, delay));
+    }
 
     const res = await fetch(VOYAGE_API_URL, {
       method: 'POST',
@@ -106,53 +171,27 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
       },
       body: JSON.stringify({
         model: VOYAGE_MODEL,
-        input: batch,
-        input_type: 'document',
+        input: [text],
+        input_type: 'query',
       }),
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Voyage AI embedding failed: ${err}`);
+    if (res.ok) {
+      const data = await res.json() as {
+        data: Array<{ embedding: number[] }>;
+      };
+      return data.data[0].embedding;
     }
 
-    const data = await res.json() as {
-      data: Array<{ embedding: number[] }>;
-    };
+    lastError = await res.text();
 
-    results.push(...data.data.map((d) => d.embedding));
+    // Only retry on rate limit (429) or server error (5xx)
+    if (res.status !== 429 && res.status < 500) {
+      throw new Error(`Voyage AI query embedding failed: ${lastError}`);
+    }
   }
 
-  return results;
-}
-
-/**
- * Embed a single query for retrieval (uses input_type: 'query').
- */
-export async function embedQuery(text: string): Promise<number[]> {
-  const res = await fetch(VOYAGE_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getVoyageKey()}`,
-    },
-    body: JSON.stringify({
-      model: VOYAGE_MODEL,
-      input: [text],
-      input_type: 'query',
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Voyage AI query embedding failed: ${err}`);
-  }
-
-  const data = await res.json() as {
-    data: Array<{ embedding: number[] }>;
-  };
-
-  return data.data[0].embedding;
+  throw new Error(`Voyage AI query embedding rate limited after retries: ${lastError}`);
 }
 
 // ─── Document Processing ─────────────────────────────────────

@@ -16,7 +16,7 @@ export interface RoutingDecision {
 const MODEL_MAP: Record<ModelTier, string> = {
   haiku: 'claude-haiku-4-5-20251001',
   sonnet: 'claude-sonnet-4-5-20250929',
-  opus: 'claude-opus-4-6-20250918',
+  opus: 'claude-sonnet-4-5-20250929', // Use sonnet for complex tasks too (opus not yet available via API)
 };
 
 const COST_MAP: Record<ModelTier, number> = {

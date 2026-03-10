@@ -250,14 +250,20 @@ export async function fetchMarketplaceAgents(params?: {
   page?: number;
   pageSize?: number;
 }): Promise<{ agents: ApiAgent[]; total: number }> {
-  const url = new URL(`${API_URL}/api/marketplace/browse`);
-  if (params?.sortBy) url.searchParams.set('sortBy', params.sortBy);
-  if (params?.q) url.searchParams.set('q', params.q);
-  if (params?.category) url.searchParams.set('category', params.category);
-  if (params?.page) url.searchParams.set('page', String(params.page));
-  if (params?.pageSize) url.searchParams.set('pageSize', String(params.pageSize));
+  const qs = new URLSearchParams();
+  if (params?.sortBy) qs.set('sortBy', params.sortBy);
+  if (params?.q) qs.set('q', params.q);
+  if (params?.category) qs.set('category', params.category);
+  if (params?.page) qs.set('page', String(params.page));
+  if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
 
-  const res = await fetch(url.toString(), { credentials: 'include' });
+  let res: Response;
+  try {
+    res = await fetch(`/api/marketplace/browse?${qs}`, { credentials: 'include' });
+  } catch {
+    // Fallback to external API
+    res = await fetch(`${API_URL}/api/marketplace/browse?${qs}`, { credentials: 'include' });
+  }
   if (!res.ok) throw new Error(`Failed to fetch agents (${res.status})`);
   const data = await res.json();
   if (!data.agents) throw new Error('Invalid response format');
@@ -265,9 +271,12 @@ export async function fetchMarketplaceAgents(params?: {
 }
 
 export async function fetchFeaturedAgents(limit = 4): Promise<ApiAgent[]> {
-  const res = await fetch(`${API_URL}/api/marketplace/featured?limit=${limit}`, {
-    credentials: 'include',
-  });
+  let res: Response;
+  try {
+    res = await fetch(`/api/marketplace/featured?limit=${limit}`, { credentials: 'include' });
+  } catch {
+    res = await fetch(`${API_URL}/api/marketplace/featured?limit=${limit}`, { credentials: 'include' });
+  }
   if (!res.ok) throw new Error(`Failed to fetch featured (${res.status})`);
   const data = await res.json();
   return data.agents ?? data;
@@ -279,17 +288,17 @@ export async function assembleWorkflow(prompt: string): Promise<AssemblyResult> 
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/api/workflows/assemble`, {
+    res = await fetch('/api/workflows/assemble', {
       method: 'POST',
       headers,
       credentials: 'include',
       body,
     });
   } catch {
-    // Real backend unreachable — fall back to Next.js mock API
-    res = await fetch('/api/workflows/assemble', {
+    res = await fetch(`${API_URL}/api/workflows/assemble`, {
       method: 'POST',
       headers,
+      credentials: 'include',
       body,
     });
   }
@@ -310,17 +319,17 @@ export async function rentAgent(
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/api/rentals`, {
+    res = await fetch('/api/rentals', {
       method: 'POST',
       headers,
       credentials: 'include',
       body,
     });
   } catch {
-    // Real backend unreachable — fall back to Next.js mock API
-    res = await fetch('/api/rentals', {
+    res = await fetch(`${API_URL}/api/rentals`, {
       method: 'POST',
       headers,
+      credentials: 'include',
       body,
     });
   }
@@ -347,17 +356,17 @@ export async function createCheckout(
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/api/billing/create-checkout`, {
+    res = await fetch('/api/billing/create-checkout', {
       method: 'POST',
       headers,
       credentials: 'include',
       body,
     });
   } catch {
-    // Backend unreachable — fall back to Next.js mock
-    res = await fetch('/api/billing/create-checkout', {
+    res = await fetch(`${API_URL}/api/billing/create-checkout`, {
       method: 'POST',
       headers,
+      credentials: 'include',
       body,
     });
   }
@@ -369,12 +378,6 @@ export async function createCheckout(
   return res.json();
 }
 
-/**
- * Create a multi-agent checkout (for team activation).
- * Sends all paid agent IDs in one request so the backend can create
- * a single Stripe Checkout Session with multiple line items.
- * Falls back to sequential single-agent checkouts if the batch endpoint doesn't exist.
- */
 // ═══════════════════════════════════════════════════════════════
 // RE-EXPORTS — typed API client modules
 // ═══════════════════════════════════════════════════════════════
@@ -402,16 +405,17 @@ export async function createTeamCheckout(
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/api/billing/create-checkout`, {
+    res = await fetch('/api/billing/create-checkout', {
       method: 'POST',
       headers,
       credentials: 'include',
       body,
     });
   } catch {
-    res = await fetch('/api/billing/create-checkout', {
+    res = await fetch(`${API_URL}/api/billing/create-checkout`, {
       method: 'POST',
       headers,
+      credentials: 'include',
       body,
     });
   }

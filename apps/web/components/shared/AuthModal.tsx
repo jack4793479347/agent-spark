@@ -151,7 +151,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'signin' }
 
         {/* Header */}
         <div className="text-center mb-6">
-          {/* Lightning bolt icon */}
+          {/* Logo icon */}
           <div
             className="inline-flex items-center justify-center mb-4"
             style={{
@@ -162,7 +162,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'signin' }
             }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
             </svg>
           </div>
           <h2
