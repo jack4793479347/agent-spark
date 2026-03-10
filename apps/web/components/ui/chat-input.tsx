@@ -102,7 +102,7 @@ function ChatInputTextArea({
             <input
                 type="text"
                 value={value}
-                onChange={(e) => onChange?.({ target: e.target } as React.ChangeEvent<HTMLTextAreaElement>)}
+                onChange={(e) => onChange?.(({ target: e.target } as unknown) as React.ChangeEvent<HTMLTextAreaElement>)}
                 onKeyDown={(e) => {
                     if (!onSubmit) return;
                     if (e.key === "Enter") {
